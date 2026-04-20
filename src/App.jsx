@@ -642,30 +642,8 @@ const CyberpunkPortfolio = () => {
         .about-image {
           width: 100%;
           height: 100%;
-          background: linear-gradient(135deg, var(--card-bg) 0%, rgba(157, 78, 221, 0.2) 100%);
           border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 6rem;
-          position: relative;
-          overflow: hidden;
-        }
-
-        .photo-placeholder-text {
-          position: absolute;
-          bottom: 2rem;
-          left: 50%;
-          transform: translateX(-50%);
-          font-family: 'Share Tech Mono', monospace;
-          font-size: 0.65rem;
-          color: var(--text-secondary);
-          text-transform: uppercase;
-          letter-spacing: 1px;
-          background: rgba(0,0,0,0.7);
-          padding: 0.3rem 0.6rem;
-          border-radius: 4px;
-          white-space: nowrap;
+          object-fit: cover;
         }
 
         .about-content {
@@ -1242,9 +1220,7 @@ const CyberpunkPortfolio = () => {
         <div className="about-container">
           <div className="about-image-container">
             <div className="about-image-wrapper">
-              <div className="about-image">
-                <span className="photo-placeholder-text">Your Photo</span>
-              </div>
+              <img className="about-image" src="/headshot.jpg" alt="Daniel Castillo" />
             </div>
           </div>
           <div className="about-content">
