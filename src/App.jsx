@@ -35,15 +35,15 @@ const CyberpunkPortfolio = () => {
       title: "Material Calculator",
       description: "A software tool for construction companies to calculate materials based on the square footage of jobs. Streamlines estimation and reduces waste.",
       tech: ["JavaScript", "HTML", "CSS"],
-      image: "🧱",
-      liveLink: "#",
+      image: "",
+      liveLink: "https://esticount.com",
       githubLink: "https://github.com/codecastillo/material-calculator"
     },
     {
       title: "Top Secret Project",
       description: "A full-stack application in stealth mode. Leveraging cutting-edge frameworks to solve real-world problems.",
       tech: ["Python", "PostgreSQL", "REST API", "Docker"],
-      image: "🔐",
+      image: "",
       liveLink: "#",
       githubLink: "#"
     },
@@ -51,7 +51,7 @@ const CyberpunkPortfolio = () => {
       title: "The Next Big Thing",
       description: "Working on something special that combines clean architecture with intuitive user experience. Stay tuned for updates.",
       tech: ["JavaScript", "React", "CSS3", "Git"],
-      image: "💡",
+      image: "",
       liveLink: "#",
       githubLink: "#"
     },
@@ -59,7 +59,7 @@ const CyberpunkPortfolio = () => {
       title: "Your Project Here?",
       description: "Looking for a dedicated developer to bring your vision to life? Let's build something amazing together.",
       tech: ["HTML", "CSS", "JavaScript", "Your Stack"],
-      image: "🎯",
+      image: "",
       liveLink: "#",
       githubLink: "#"
     }
@@ -91,18 +91,11 @@ const CyberpunkPortfolio = () => {
 
   const education = [
     {
-      degree: "Bachelor's Degree in Progress",
-      school: "Utah Tech University",
-      period: "2024 - Present",
-      focus: "Computer Science & Software Development",
-      gpa: "In Progress"
-    },
-    {
       degree: "Technical Certificate",
       school: "Dixie Technical College",
-      period: "Completed",
+      period: "Jan 2026 - Present",
       focus: "Software Development",
-      gpa: "Graduated"
+      gpa: "In Progress"
     }
   ];
 
@@ -956,7 +949,7 @@ const CyberpunkPortfolio = () => {
                 <polyline points="22,6 12,13 2,6"></polyline>
               </svg>
             </a>
-            <a href="https://github.com/yourusername" target="_blank" rel="noopener noreferrer" className="social-icon" title="GitHub">
+            <a href="https://github.com/codecastillo" target="_blank" rel="noopener noreferrer" className="social-icon" title="GitHub">
               <svg width={18} height={18} viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
               </svg>
@@ -985,7 +978,7 @@ const CyberpunkPortfolio = () => {
           <p className="hero-subtitle">// Welcome to my portfolio</p>
           <h1 className="hero-title">
             <span className="pink-text">DANIEL CASTILLO</span>
-            <span className="white-text">Software Developer</span>
+            <span className="white-text">Software Engineer</span>
           </h1>
           <p className="hero-description">
             Building clean, efficient web applications with modern technologies. 
@@ -1008,7 +1001,6 @@ const CyberpunkPortfolio = () => {
           <div className="about-image-container">
             <div className="about-image-wrapper">
               <div className="about-image">
-                👨‍💻
                 <span className="photo-placeholder-text">Your Photo</span>
               </div>
             </div>
@@ -1016,13 +1008,12 @@ const CyberpunkPortfolio = () => {
           <div className="about-content">
             <p className="about-greeting">Hello, I'm</p>
             <h3 className="about-name">DANIEL CASTILLO</h3>
-            <p className="about-title">Software Developer</p>
+            <p className="about-title">Software Engineer</p>
             <div className="about-bio">
               <p>
-                I'm a 25-year-old software developer based in Utah with a passion for 
-                building intuitive, user-friendly web applications. I recently completed 
-                my technical certificate at Dixie Technical College and I'm currently 
-                pursuing my Bachelor's degree at Utah Tech University.
+                I'm a 25-year-old software engineer based in Utah with a passion for
+                building intuitive, user-friendly web applications. I'm currently
+                pursuing my technical certificate at Dixie Technical College.
               </p>
               <p>
                 My focus is on full-stack web development, with experience in JavaScript, 
@@ -1042,7 +1033,6 @@ const CyberpunkPortfolio = () => {
                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                 <polyline points="22,6 12,13 2,6"></polyline>
               </svg>
-              <span className="wave-emoji">👋</span>
               Say Hi!
             </a>
           </div>
@@ -1106,7 +1096,6 @@ const CyberpunkPortfolio = () => {
         <div className="projects-grid">
           {projects.map((project, index) => (
             <div key={index} className="project-card">
-              <span className="project-icon">{project.image}</span>
               <h3 className="project-title">{project.title}</h3>
               <p className="project-description">{project.description}</p>
               <div className="project-tech">
@@ -1162,7 +1151,7 @@ const CyberpunkPortfolio = () => {
       {/* Footer - Simple with love */}
       <footer className="footer">
         <p className="footer-text">
-          Designed & Built with <span>♥</span> by DANIEL CASTILLO
+          &copy; Daniel Castillo 2026
         </p>
       </footer>
     </div>
