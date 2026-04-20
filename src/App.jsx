@@ -1,33 +1,98 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 const CyberpunkPortfolio = () => {
   const [activeSection, setActiveSection] = useState('home');
   const [isLoaded, setIsLoaded] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [typedText, setTypedText] = useState('');
+  const [contactStatus, setContactStatus] = useState('');
 
-  // Scroll spy - automatically update active tab based on scroll position
+  const titles = ['Software Engineer', 'Full-Stack Developer', 'Problem Solver'];
+  const titleIndex = useRef(0);
+  const charIndex = useRef(0);
+  const isDeleting = useRef(false);
+
+  // Typing animation
+  useEffect(() => {
+    const type = () => {
+      const current = titles[titleIndex.current];
+      if (isDeleting.current) {
+        charIndex.current--;
+        setTypedText(current.substring(0, charIndex.current));
+        if (charIndex.current === 0) {
+          isDeleting.current = false;
+          titleIndex.current = (titleIndex.current + 1) % titles.length;
+        }
+      } else {
+        charIndex.current++;
+        setTypedText(current.substring(0, charIndex.current));
+        if (charIndex.current === current.length) {
+          setTimeout(() => { isDeleting.current = true; }, 2000);
+        }
+      }
+    };
+    const interval = setInterval(type, isDeleting.current ? 50 : 100);
+    return () => clearInterval(interval);
+  }, [typedText]);
+
+  // Scroll spy
   useEffect(() => {
     setIsLoaded(true);
 
     const handleScroll = () => {
-      const sections = ['home', 'about', 'experience', 'education', 'projects', 'skills'];
-      const scrollPosition = window.scrollY + 150; // Offset for header
-
+      const sections = ['home', 'about', 'experience', 'education', 'projects', 'skills', 'contact'];
+      const scrollPosition = window.scrollY + 150;
       for (let i = sections.length - 1; i >= 0; i--) {
         const section = document.getElementById(sections[i]);
-        if (section) {
-          const sectionTop = section.offsetTop;
-          if (scrollPosition >= sectionTop) {
-            setActiveSection(sections[i]);
-            break;
-          }
+        if (section && scrollPosition >= section.offsetTop) {
+          setActiveSection(sections[i]);
+          break;
         }
       }
     };
 
     window.addEventListener('scroll', handleScroll);
-    handleScroll(); // Initial check
-
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Scroll-triggered fade-in animations
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('fade-in-visible');
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+    );
+
+    const elements = document.querySelectorAll('.fade-in-section');
+    elements.forEach((el) => observer.observe(el));
+    return () => elements.forEach((el) => observer.unobserve(el));
+  }, []);
+
+  const handleContactSubmit = useCallback((e) => {
+    e.preventDefault();
+    const form = e.target;
+    const data = new FormData(form);
+
+    fetch('https://formspree.io/f/dancastlebiz@gmail.com', {
+      method: 'POST',
+      body: data,
+      headers: { Accept: 'application/json' },
+    })
+      .then((res) => {
+        if (res.ok) {
+          setContactStatus('sent');
+          form.reset();
+        } else {
+          setContactStatus('error');
+        }
+      })
+      .catch(() => setContactStatus('error'));
   }, []);
 
   const projects = [
@@ -35,7 +100,6 @@ const CyberpunkPortfolio = () => {
       title: "Material Calculator",
       description: "A software tool for construction companies to calculate materials based on the square footage of jobs. Streamlines estimation and reduces waste.",
       tech: ["JavaScript", "HTML", "CSS"],
-      image: "",
       liveLink: "https://esticount.com",
       githubLink: "https://github.com/codecastillo/material-calculator"
     },
@@ -43,7 +107,6 @@ const CyberpunkPortfolio = () => {
       title: "Top Secret Project",
       description: "A full-stack application in stealth mode. Leveraging cutting-edge frameworks to solve real-world problems.",
       tech: ["Python", "PostgreSQL", "REST API", "Docker"],
-      image: "",
       liveLink: "#",
       githubLink: "#"
     },
@@ -51,7 +114,6 @@ const CyberpunkPortfolio = () => {
       title: "The Next Big Thing",
       description: "Working on something special that combines clean architecture with intuitive user experience. Stay tuned for updates.",
       tech: ["JavaScript", "React", "CSS3", "Git"],
-      image: "",
       liveLink: "#",
       githubLink: "#"
     },
@@ -59,7 +121,6 @@ const CyberpunkPortfolio = () => {
       title: "Your Project Here?",
       description: "Looking for a dedicated developer to bring your vision to life? Let's build something amazing together.",
       tech: ["HTML", "CSS", "JavaScript", "Your Stack"],
-      image: "",
       liveLink: "#",
       githubLink: "#"
     }
@@ -111,15 +172,12 @@ const CyberpunkPortfolio = () => {
   const scrollToSection = (sectionId) => {
     const section = document.getElementById(sectionId);
     if (section) {
-      const offsetTop = section.offsetTop - 80; // Account for fixed header
-      window.scrollTo({
-        top: offsetTop,
-        behavior: 'smooth'
-      });
+      window.scrollTo({ top: section.offsetTop - 80, behavior: 'smooth' });
     }
+    setMobileMenuOpen(false);
   };
 
-  const navItems = ['Home', 'About', 'Experience', 'Education', 'Projects', 'Skills'];
+  const navItems = ['Home', 'About', 'Experience', 'Education', 'Projects', 'Skills', 'Contact'];
 
   return (
     <div className="portfolio-container">
@@ -154,6 +212,18 @@ const CyberpunkPortfolio = () => {
           position: relative;
         }
 
+        /* Scroll fade-in animations */
+        .fade-in-section {
+          opacity: 0;
+          transform: translateY(40px);
+          transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .fade-in-visible {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
         /* Animated Grid Background */
         .grid-background {
           position: fixed;
@@ -161,7 +231,7 @@ const CyberpunkPortfolio = () => {
           left: 0;
           right: 0;
           bottom: 0;
-          background-image: 
+          background-image:
             linear-gradient(rgba(5, 217, 232, 0.03) 1px, transparent 1px),
             linear-gradient(90deg, rgba(5, 217, 232, 0.03) 1px, transparent 1px);
           background-size: 50px 50px;
@@ -221,7 +291,7 @@ const CyberpunkPortfolio = () => {
           100% { transform: translateY(-100vh) scale(1); opacity: 0; }
         }
 
-        /* Navigation - Compact: Nav Left, Icons Right */
+        /* Navigation */
         .nav {
           position: fixed;
           top: 0;
@@ -280,6 +350,75 @@ const CyberpunkPortfolio = () => {
           width: 100%;
         }
 
+        /* Hamburger Menu */
+        .hamburger {
+          display: none;
+          flex-direction: column;
+          gap: 5px;
+          cursor: pointer;
+          background: none;
+          border: none;
+          padding: 0.5rem;
+          z-index: 101;
+        }
+
+        .hamburger span {
+          display: block;
+          width: 25px;
+          height: 2px;
+          background: var(--text-primary);
+          transition: all 0.3s ease;
+        }
+
+        .hamburger.open span:nth-child(1) {
+          transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .hamburger.open span:nth-child(2) {
+          opacity: 0;
+        }
+
+        .hamburger.open span:nth-child(3) {
+          transform: rotate(-45deg) translate(5px, -5px);
+        }
+
+        /* Mobile Menu Overlay */
+        .mobile-menu-overlay {
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(10, 10, 15, 0.98);
+          z-index: 99;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 2rem;
+        }
+
+        .mobile-menu-overlay.open {
+          display: flex;
+        }
+
+        .mobile-menu-overlay .mobile-nav-link {
+          font-family: 'Orbitron', sans-serif;
+          font-size: 1.5rem;
+          font-weight: 600;
+          color: var(--text-secondary);
+          cursor: pointer;
+          transition: all 0.3s ease;
+          text-transform: uppercase;
+          letter-spacing: 2px;
+        }
+
+        .mobile-menu-overlay .mobile-nav-link:hover,
+        .mobile-menu-overlay .mobile-nav-link.active {
+          color: var(--neon-pink);
+          text-shadow: 0 0 20px rgba(255, 42, 109, 0.5);
+        }
+
         /* Social Icons */
         .social-icons {
           display: flex;
@@ -296,6 +435,7 @@ const CyberpunkPortfolio = () => {
           padding: 0.5rem;
           border-radius: 4px;
           border: 1px solid rgba(157, 78, 221, 0.3);
+          text-decoration: none;
         }
 
         .social-icon:hover {
@@ -353,10 +493,26 @@ const CyberpunkPortfolio = () => {
           display: block;
         }
 
-        .hero-title .white-text {
+        .hero-title .typed-text {
           color: #ffffff;
           display: block;
           margin-top: 0.5rem;
+          min-height: 1.2em;
+        }
+
+        .typing-cursor {
+          display: inline-block;
+          width: 3px;
+          height: 1em;
+          background: var(--neon-blue);
+          margin-left: 4px;
+          animation: blink 0.7s infinite;
+          vertical-align: text-bottom;
+        }
+
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
         }
 
         .hero-description {
@@ -442,7 +598,7 @@ const CyberpunkPortfolio = () => {
           background-clip: text;
         }
 
-        /* About Section - Centered */
+        /* About Section */
         .about-container {
           max-width: 800px;
           margin: 0 auto;
@@ -540,7 +696,6 @@ const CyberpunkPortfolio = () => {
           margin-bottom: 1rem;
         }
 
-        /* Say Hi Button - Combined */
         .say-hi-btn {
           font-family: 'Share Tech Mono', monospace;
           font-size: 1rem;
@@ -573,20 +728,7 @@ const CyberpunkPortfolio = () => {
           stroke: var(--dark-bg);
         }
 
-        .wave-emoji {
-          font-size: 1.2rem;
-          display: inline-block;
-          animation: wave 1.5s ease-in-out infinite;
-          transform-origin: 70% 70%;
-        }
-
-        @keyframes wave {
-          0%, 100% { transform: rotate(0deg); }
-          25% { transform: rotate(20deg); }
-          75% { transform: rotate(-10deg); }
-        }
-
-        /* Projects Grid - Centered */
+        /* Projects Grid */
         .projects-grid {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -631,12 +773,6 @@ const CyberpunkPortfolio = () => {
         @keyframes gradient-shift {
           0% { background-position: 0% 50%; }
           100% { background-position: 200% 50%; }
-        }
-
-        .project-icon {
-          font-size: 3rem;
-          margin-bottom: 1.5rem;
-          display: block;
         }
 
         .project-title {
@@ -709,7 +845,7 @@ const CyberpunkPortfolio = () => {
           height: 16px;
         }
 
-        /* Experience & Education - Left aligned boxes */
+        /* Timeline */
         .timeline-container {
           max-width: 1000px;
           margin: 0 auto;
@@ -801,7 +937,7 @@ const CyberpunkPortfolio = () => {
           color: var(--neon-pink);
         }
 
-        /* Skills Section - Centered */
+        /* Skills Section with glow */
         .skills-container {
           max-width: 800px;
           margin: 0 auto;
@@ -835,17 +971,129 @@ const CyberpunkPortfolio = () => {
           background: rgba(255, 255, 255, 0.1);
           border-radius: 10px;
           overflow: hidden;
+          position: relative;
         }
 
         .skill-progress {
           height: 100%;
           background: var(--gradient-1);
           border-radius: 10px;
-          box-shadow: 0 0 20px rgba(255, 42, 109, 0.5);
+          box-shadow: 0 0 20px rgba(255, 42, 109, 0.5), 0 0 40px rgba(157, 78, 221, 0.3);
           transition: width 1.5s ease;
+          position: relative;
         }
 
-        /* Footer - Simple with love */
+        .skill-progress::after {
+          content: '';
+          position: absolute;
+          right: 0;
+          top: -4px;
+          width: 16px;
+          height: 16px;
+          background: var(--neon-blue);
+          border-radius: 50%;
+          box-shadow: 0 0 15px var(--neon-blue), 0 0 30px rgba(5, 217, 232, 0.4);
+        }
+
+        .skill-item:hover .skill-progress {
+          box-shadow: 0 0 30px rgba(255, 42, 109, 0.7), 0 0 60px rgba(157, 78, 221, 0.5);
+        }
+
+        .skill-item:hover .skill-progress::after {
+          box-shadow: 0 0 20px var(--neon-blue), 0 0 40px rgba(5, 217, 232, 0.6);
+        }
+
+        /* Contact Section */
+        .contact-container {
+          max-width: 600px;
+          margin: 0 auto;
+        }
+
+        .contact-form {
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+        }
+
+        .form-group {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .form-label {
+          font-family: 'Share Tech Mono', monospace;
+          font-size: 0.85rem;
+          color: var(--neon-blue);
+          text-transform: uppercase;
+          letter-spacing: 2px;
+        }
+
+        .form-input,
+        .form-textarea {
+          font-family: 'Rajdhani', sans-serif;
+          font-size: 1rem;
+          padding: 1rem;
+          background: rgba(15, 15, 25, 0.8);
+          border: 1px solid rgba(157, 78, 221, 0.3);
+          border-radius: 8px;
+          color: var(--text-primary);
+          outline: none;
+          transition: all 0.3s ease;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+          border-color: var(--neon-blue);
+          box-shadow: 0 0 15px rgba(5, 217, 232, 0.2);
+        }
+
+        .form-textarea {
+          min-height: 150px;
+          resize: vertical;
+        }
+
+        .submit-btn {
+          font-family: 'Share Tech Mono', monospace;
+          font-size: 1rem;
+          padding: 1rem 2rem;
+          background: transparent;
+          border: 2px solid var(--neon-pink);
+          color: var(--neon-pink);
+          letter-spacing: 2px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          border-radius: 8px;
+          text-transform: uppercase;
+          align-self: center;
+        }
+
+        .submit-btn:hover {
+          background: var(--neon-pink);
+          color: var(--dark-bg);
+          box-shadow: 0 0 30px var(--neon-pink), 0 0 60px rgba(255, 42, 109, 0.4);
+        }
+
+        .contact-status {
+          font-family: 'Share Tech Mono', monospace;
+          text-align: center;
+          padding: 1rem;
+          border-radius: 8px;
+        }
+
+        .contact-status.sent {
+          color: var(--neon-blue);
+          border: 1px solid rgba(5, 217, 232, 0.3);
+          background: rgba(5, 217, 232, 0.1);
+        }
+
+        .contact-status.error {
+          color: var(--neon-pink);
+          border: 1px solid rgba(255, 42, 109, 0.3);
+          background: rgba(255, 42, 109, 0.1);
+        }
+
+        /* Footer */
         .footer {
           text-align: center;
           padding: 3rem 2rem;
@@ -860,21 +1108,18 @@ const CyberpunkPortfolio = () => {
           color: var(--text-secondary);
         }
 
-        .footer-text span {
-          color: var(--neon-pink);
-        }
-
         /* Responsive */
         @media (max-width: 768px) {
-          .nav-content {
-            flex-direction: column;
-            gap: 1rem;
+          .nav-links {
+            display: none;
           }
 
-          .nav-links {
-            gap: 0.75rem;
-            flex-wrap: wrap;
-            justify-content: center;
+          .social-icons {
+            display: none;
+          }
+
+          .hamburger {
+            display: flex;
           }
 
           .hero-title {
@@ -895,6 +1140,10 @@ const CyberpunkPortfolio = () => {
 
           .timeline-item::before {
             left: -2rem;
+          }
+
+          .about-name {
+            font-size: 1.8rem;
           }
         }
 
@@ -927,7 +1176,20 @@ const CyberpunkPortfolio = () => {
         ))}
       </div>
 
-      {/* Navigation - Compact: Nav Left, Icons Right */}
+      {/* Mobile Menu Overlay */}
+      <div className={`mobile-menu-overlay ${mobileMenuOpen ? 'open' : ''}`}>
+        {navItems.map((item) => (
+          <span
+            key={item}
+            className={`mobile-nav-link ${activeSection === item.toLowerCase() ? 'active' : ''}`}
+            onClick={() => scrollToSection(item.toLowerCase())}
+          >
+            {item}
+          </span>
+        ))}
+      </div>
+
+      {/* Navigation */}
       <nav className="nav">
         <div className="nav-content">
           <ul className="nav-links">
@@ -969,6 +1231,15 @@ const CyberpunkPortfolio = () => {
               </svg>
             </a>
           </div>
+          <button
+            className={`hamburger ${mobileMenuOpen ? 'open' : ''}`}
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
         </div>
       </nav>
 
@@ -978,12 +1249,12 @@ const CyberpunkPortfolio = () => {
           <p className="hero-subtitle">// Welcome to my portfolio</p>
           <h1 className="hero-title">
             <span className="pink-text">DANIEL CASTILLO</span>
-            <span className="white-text">Software Engineer</span>
+            <span className="typed-text">{typedText}<span className="typing-cursor"></span></span>
           </h1>
           <p className="hero-description">
-            Building clean, efficient web applications with modern technologies. 
-            Based in Utah, currently pursuing my degree while actively seeking 
-            opportunities to grow as a developer.
+            Building clean, efficient web applications with modern technologies.
+            Based in Utah, currently pursuing my technical certificate while actively seeking
+            opportunities to grow as an engineer.
           </p>
           <div className="scroll-indicator">
             <span>Scroll</span>
@@ -992,8 +1263,8 @@ const CyberpunkPortfolio = () => {
         </div>
       </section>
 
-      {/* About Section - Centered */}
-      <section id="about">
+      {/* About Section */}
+      <section id="about" className="fade-in-section">
         <div className="section-header">
           <p className="section-tag">// Get to know me</p>
         </div>
@@ -1016,15 +1287,15 @@ const CyberpunkPortfolio = () => {
                 pursuing my technical certificate at Dixie Technical College.
               </p>
               <p>
-                My focus is on full-stack web development, with experience in JavaScript, 
-                React, Python, and database management. I enjoy tackling complex problems 
+                My focus is on full-stack web development, with experience in JavaScript,
+                React, Python, and database management. I enjoy tackling complex problems
                 and turning them into clean, efficient solutions.
               </p>
               <p>
-                I'm actively seeking opportunities where I can apply my skills, learn from 
-                experienced developers, and contribute to meaningful projects. Outside of 
-                coding, I enjoy baking. There's a lot of overlap between the two: both require 
-                following precise steps, experimenting with different combinations, and debugging 
+                I'm actively seeking opportunities where I can apply my skills, learn from
+                experienced developers, and contribute to meaningful projects. Outside of
+                coding, I enjoy baking. There's a lot of overlap between the two: both require
+                following precise steps, experimenting with different combinations, and debugging
                 when things don't rise as expected.
               </p>
             </div>
@@ -1040,7 +1311,7 @@ const CyberpunkPortfolio = () => {
       </section>
 
       {/* Experience Section */}
-      <section id="experience">
+      <section id="experience" className="fade-in-section">
         <div className="section-header">
           <p className="section-tag">// Career path</p>
           <h2 className="section-title">Experience</h2>
@@ -1065,7 +1336,7 @@ const CyberpunkPortfolio = () => {
       </section>
 
       {/* Education Section */}
-      <section id="education">
+      <section id="education" className="fade-in-section">
         <div className="section-header">
           <p className="section-tag">// My foundation</p>
           <h2 className="section-title">Education</h2>
@@ -1088,7 +1359,7 @@ const CyberpunkPortfolio = () => {
       </section>
 
       {/* Projects Section */}
-      <section id="projects">
+      <section id="projects" className="fade-in-section">
         <div className="section-header">
           <p className="section-tag">// What I'm working on</p>
           <h2 className="section-title">Projects</h2>
@@ -1125,7 +1396,7 @@ const CyberpunkPortfolio = () => {
       </section>
 
       {/* Skills Section */}
-      <section id="skills">
+      <section id="skills" className="fade-in-section">
         <div className="section-header">
           <p className="section-tag">// My tech stack</p>
           <h2 className="section-title">Skills</h2>
@@ -1138,8 +1409,8 @@ const CyberpunkPortfolio = () => {
                 <span className="skill-percentage">{skill.level}%</span>
               </div>
               <div className="skill-bar">
-                <div 
-                  className="skill-progress" 
+                <div
+                  className="skill-progress"
                   style={{ width: isLoaded ? `${skill.level}%` : '0%' }}
                 ></div>
               </div>
@@ -1148,7 +1419,38 @@ const CyberpunkPortfolio = () => {
         </div>
       </section>
 
-      {/* Footer - Simple with love */}
+      {/* Contact Section */}
+      <section id="contact" className="fade-in-section">
+        <div className="section-header">
+          <p className="section-tag">// Get in touch</p>
+          <h2 className="section-title">Contact</h2>
+        </div>
+        <div className="contact-container">
+          <form className="contact-form" onSubmit={handleContactSubmit}>
+            <div className="form-group">
+              <label className="form-label" htmlFor="name">Name</label>
+              <input className="form-input" type="text" id="name" name="name" required />
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="email">Email</label>
+              <input className="form-input" type="email" id="email" name="email" required />
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="message">Message</label>
+              <textarea className="form-textarea" id="message" name="message" required></textarea>
+            </div>
+            <button type="submit" className="submit-btn">Send Message</button>
+            {contactStatus === 'sent' && (
+              <p className="contact-status sent">Message sent successfully. I'll get back to you soon!</p>
+            )}
+            {contactStatus === 'error' && (
+              <p className="contact-status error">Something went wrong. Please email me directly at dancastlebiz@gmail.com</p>
+            )}
+          </form>
+        </div>
+      </section>
+
+      {/* Footer */}
       <footer className="footer">
         <p className="footer-text">
           &copy; Daniel Castillo 2026
