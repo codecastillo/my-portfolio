@@ -1,13 +1,12 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 
 const CyberpunkPortfolio = () => {
-  const [activeSection, setActiveSection] = useState('home');
+  const [activeSection, setActiveSection] = useState("home");
   const [isLoaded, setIsLoaded] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [typedText, setTypedText] = useState('');
-  const [contactStatus, setContactStatus] = useState('');
+  const [typedText, setTypedText] = useState("");
 
-  const titles = ['Software Engineer', 'Full-Stack Developer', 'Problem Solver'];
+  const titles = ["Software Engineer", "Full-Stack Developer", "Problem Solver"];
   const titleIndex = useRef(0);
   const charIndex = useRef(0);
   const isDeleting = useRef(false);
@@ -27,7 +26,9 @@ const CyberpunkPortfolio = () => {
         charIndex.current++;
         setTypedText(current.substring(0, charIndex.current));
         if (charIndex.current === current.length) {
-          setTimeout(() => { isDeleting.current = true; }, 2000);
+          setTimeout(() => {
+            isDeleting.current = true;
+          }, 2000);
         }
       }
     };
@@ -40,7 +41,14 @@ const CyberpunkPortfolio = () => {
     setIsLoaded(true);
 
     const handleScroll = () => {
-      const sections = ['home', 'about', 'experience', 'education', 'projects', 'skills', 'contact'];
+      const sections = [
+        "home",
+        "about",
+        "experience",
+        "education",
+        "projects",
+        "skills",
+      ];
       const scrollPosition = window.scrollY + 150;
       for (let i = sections.length - 1; i >= 0; i--) {
         const section = document.getElementById(sections[i]);
@@ -51,9 +59,9 @@ const CyberpunkPortfolio = () => {
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
     handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   // Scroll-triggered fade-in animations
@@ -62,68 +70,51 @@ const CyberpunkPortfolio = () => {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add('fade-in-visible');
+            entry.target.classList.add("fade-in-visible");
           }
         });
       },
-      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+      { threshold: 0.1, rootMargin: "0px 0px -50px 0px" },
     );
 
-    const elements = document.querySelectorAll('.fade-in-section');
+    const elements = document.querySelectorAll(".fade-in-section");
     elements.forEach((el) => observer.observe(el));
     return () => elements.forEach((el) => observer.unobserve(el));
-  }, []);
-
-  const handleContactSubmit = useCallback((e) => {
-    e.preventDefault();
-    const form = e.target;
-    const data = new FormData(form);
-
-    fetch('https://formspree.io/f/dancastlebiz@gmail.com', {
-      method: 'POST',
-      body: data,
-      headers: { Accept: 'application/json' },
-    })
-      .then((res) => {
-        if (res.ok) {
-          setContactStatus('sent');
-          form.reset();
-        } else {
-          setContactStatus('error');
-        }
-      })
-      .catch(() => setContactStatus('error'));
   }, []);
 
   const projects = [
     {
       title: "Material Calculator",
-      description: "A software tool for construction companies to calculate materials based on the square footage of jobs. Streamlines estimation and reduces waste.",
+      description:
+        "A software tool for construction companies to calculate materials based on the square footage of jobs. Streamlines estimation and reduces waste.",
       tech: ["JavaScript", "HTML", "CSS"],
       liveLink: "https://esticount.com",
-      githubLink: "https://github.com/codecastillo/material-calculator"
+      githubLink: "https://github.com/codecastillo/material-calculator",
     },
     {
       title: "Top Secret Project",
-      description: "A full-stack application in stealth mode. Leveraging cutting-edge frameworks to solve real-world problems.",
+      description:
+        "A full-stack application in stealth mode. Leveraging cutting-edge frameworks to solve real-world problems.",
       tech: ["Python", "PostgreSQL", "REST API", "Docker"],
       liveLink: "#",
-      githubLink: "#"
+      githubLink: "#",
     },
     {
       title: "The Next Big Thing",
-      description: "Working on something special that combines clean architecture with intuitive user experience. Stay tuned for updates.",
+      description:
+        "Working on something special that combines clean architecture with intuitive user experience. Stay tuned for updates.",
       tech: ["JavaScript", "React", "CSS3", "Git"],
       liveLink: "#",
-      githubLink: "#"
+      githubLink: "#",
     },
     {
       title: "Your Project Here?",
-      description: "Looking for a dedicated developer to bring your vision to life? Let's build something amazing together.",
+      description:
+        "Looking for a dedicated developer to bring your vision to life? Let's build something amazing together.",
       tech: ["HTML", "CSS", "JavaScript", "Your Stack"],
       liveLink: "#",
-      githubLink: "#"
-    }
+      githubLink: "#",
+    },
   ];
 
   const experiences = [
@@ -131,23 +122,34 @@ const CyberpunkPortfolio = () => {
       role: "Senior Developer",
       company: "Your Company Here",
       period: "Future",
-      description: "The goal. Leading development teams, architecting scalable solutions, and mentoring the next generation of developers.",
-      highlights: ["Technical leadership", "System architecture", "Team mentorship"]
+      description:
+        "The goal. Leading development teams, architecting scalable solutions, and mentoring the next generation of developers.",
+      highlights: [
+        "Technical leadership",
+        "System architecture",
+        "Team mentorship",
+      ],
     },
     {
       role: "Mid-Level Developer",
       company: "Growing Here",
       period: "Coming Soon",
-      description: "Building expertise and taking ownership of features. Ready to tackle complex challenges and contribute to major projects.",
-      highlights: ["Feature ownership", "Code reviews", "Cross-team collaboration"]
+      description:
+        "Building expertise and taking ownership of features. Ready to tackle complex challenges and contribute to major projects.",
+      highlights: [
+        "Feature ownership",
+        "Code reviews",
+        "Cross-team collaboration",
+      ],
     },
     {
       role: "Junior Developer",
       company: "Open to Opportunities",
       period: "Available Now",
-      description: "Currently seeking my first professional role. Eager to learn, contribute, and grow with a team that values clean code and continuous improvement.",
-      highlights: ["Fast learner", "Team player", "Strong foundation"]
-    }
+      description:
+        "Currently seeking my first professional role. Eager to learn, contribute, and grow with a team that values clean code and continuous improvement.",
+      highlights: ["Fast learner", "Team player", "Strong foundation"],
+    },
   ];
 
   const education = [
@@ -156,8 +158,8 @@ const CyberpunkPortfolio = () => {
       school: "Dixie Technical College",
       period: "Jan 2026 - Present",
       focus: "Software Development",
-      gpa: "In Progress"
-    }
+      gpa: "In Progress",
+    },
   ];
 
   const skills = [
@@ -166,18 +168,25 @@ const CyberpunkPortfolio = () => {
     { name: "React", level: 80 },
     { name: "Python", level: 80 },
     { name: "TypeScript", level: 75 },
-    { name: "PostgreSQL", level: 70 }
+    { name: "PostgreSQL", level: 70 },
   ];
 
   const scrollToSection = (sectionId) => {
     const section = document.getElementById(sectionId);
     if (section) {
-      window.scrollTo({ top: section.offsetTop - 80, behavior: 'smooth' });
+      window.scrollTo({ top: section.offsetTop - 80, behavior: "smooth" });
     }
     setMobileMenuOpen(false);
   };
 
-  const navItems = ['Home', 'About', 'Experience', 'Education', 'Projects', 'Skills', 'Contact'];
+  const navItems = [
+    "Home",
+    "About",
+    "Experience",
+    "Education",
+    "Projects",
+    "Skills",
+  ];
 
   return (
     <div className="portfolio-container">
@@ -592,7 +601,7 @@ const CyberpunkPortfolio = () => {
           font-family: 'Orbitron', sans-serif;
           font-size: clamp(2rem, 5vw, 3.5rem);
           font-weight: 700;
-          background: var(--gradient-1);
+          background: linear-gradient(135deg, #ff5a8a 0%, #c084fc 50%, #22d3ee 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -1003,96 +1012,6 @@ const CyberpunkPortfolio = () => {
           box-shadow: 0 0 20px var(--neon-blue), 0 0 40px rgba(5, 217, 232, 0.6);
         }
 
-        /* Contact Section */
-        .contact-container {
-          max-width: 600px;
-          margin: 0 auto;
-        }
-
-        .contact-form {
-          display: flex;
-          flex-direction: column;
-          gap: 1.5rem;
-        }
-
-        .form-group {
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-        }
-
-        .form-label {
-          font-family: 'Share Tech Mono', monospace;
-          font-size: 0.85rem;
-          color: var(--neon-blue);
-          text-transform: uppercase;
-          letter-spacing: 2px;
-        }
-
-        .form-input,
-        .form-textarea {
-          font-family: 'Rajdhani', sans-serif;
-          font-size: 1rem;
-          padding: 1rem;
-          background: rgba(15, 15, 25, 0.8);
-          border: 1px solid rgba(157, 78, 221, 0.3);
-          border-radius: 8px;
-          color: var(--text-primary);
-          outline: none;
-          transition: all 0.3s ease;
-        }
-
-        .form-input:focus,
-        .form-textarea:focus {
-          border-color: var(--neon-blue);
-          box-shadow: 0 0 15px rgba(5, 217, 232, 0.2);
-        }
-
-        .form-textarea {
-          min-height: 150px;
-          resize: vertical;
-        }
-
-        .submit-btn {
-          font-family: 'Share Tech Mono', monospace;
-          font-size: 1rem;
-          padding: 1rem 2rem;
-          background: transparent;
-          border: 2px solid var(--neon-pink);
-          color: var(--neon-pink);
-          letter-spacing: 2px;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          border-radius: 8px;
-          text-transform: uppercase;
-          align-self: center;
-        }
-
-        .submit-btn:hover {
-          background: var(--neon-pink);
-          color: var(--dark-bg);
-          box-shadow: 0 0 30px var(--neon-pink), 0 0 60px rgba(255, 42, 109, 0.4);
-        }
-
-        .contact-status {
-          font-family: 'Share Tech Mono', monospace;
-          text-align: center;
-          padding: 1rem;
-          border-radius: 8px;
-        }
-
-        .contact-status.sent {
-          color: var(--neon-blue);
-          border: 1px solid rgba(5, 217, 232, 0.3);
-          background: rgba(5, 217, 232, 0.1);
-        }
-
-        .contact-status.error {
-          color: var(--neon-pink);
-          border: 1px solid rgba(255, 42, 109, 0.3);
-          background: rgba(255, 42, 109, 0.1);
-        }
-
         /* Footer */
         .footer {
           text-align: center;
@@ -1177,11 +1096,11 @@ const CyberpunkPortfolio = () => {
       </div>
 
       {/* Mobile Menu Overlay */}
-      <div className={`mobile-menu-overlay ${mobileMenuOpen ? 'open' : ''}`}>
+      <div className={`mobile-menu-overlay ${mobileMenuOpen ? "open" : ""}`}>
         {navItems.map((item) => (
           <span
             key={item}
-            className={`mobile-nav-link ${activeSection === item.toLowerCase() ? 'active' : ''}`}
+            className={`mobile-nav-link ${activeSection === item.toLowerCase() ? "active" : ""}`}
             onClick={() => scrollToSection(item.toLowerCase())}
           >
             {item}
@@ -1196,7 +1115,7 @@ const CyberpunkPortfolio = () => {
             {navItems.map((item) => (
               <li key={item}>
                 <span
-                  className={`nav-link ${activeSection === item.toLowerCase() ? 'active' : ''}`}
+                  className={`nav-link ${activeSection === item.toLowerCase() ? "active" : ""}`}
                   onClick={() => scrollToSection(item.toLowerCase())}
                 >
                   {item}
@@ -1205,24 +1124,73 @@ const CyberpunkPortfolio = () => {
             ))}
           </ul>
           <div className="social-icons">
-            <a href="mailto:dancastlebiz@gmail.com" className="social-icon" title="Email">
-              <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <a
+              href="mailto:dancastlebiz@gmail.com"
+              className="social-icon"
+              title="Email"
+            >
+              <svg
+                width={18}
+                height={18}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                 <polyline points="22,6 12,13 2,6"></polyline>
               </svg>
             </a>
-            <a href="https://github.com/codecastillo" target="_blank" rel="noopener noreferrer" className="social-icon" title="GitHub">
-              <svg width={18} height={18} viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+            <a
+              href="https://github.com/codecastillo"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="social-icon"
+              title="GitHub"
+            >
+              <svg
+                width={18}
+                height={18}
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
               </svg>
             </a>
-            <a href="https://linkedin.com/in/dancsatle" target="_blank" rel="noopener noreferrer" className="social-icon" title="LinkedIn">
-              <svg width={18} height={18} viewBox="0 0 24 24" fill="currentColor">
-                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+            <a
+              href="https://linkedin.com/in/dancsatle"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="social-icon"
+              title="LinkedIn"
+            >
+              <svg
+                width={18}
+                height={18}
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
               </svg>
             </a>
-            <a href="/resume.pdf" download className="social-icon" title="Resume">
-              <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <a
+              href="/resume.pdf"
+              download
+              className="social-icon"
+              title="Resume"
+            >
+              <svg
+                width={18}
+                height={18}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                 <polyline points="14 2 14 8 20 8"></polyline>
                 <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -1232,7 +1200,7 @@ const CyberpunkPortfolio = () => {
             </a>
           </div>
           <button
-            className={`hamburger ${mobileMenuOpen ? 'open' : ''}`}
+            className={`hamburger ${mobileMenuOpen ? "open" : ""}`}
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -1249,12 +1217,15 @@ const CyberpunkPortfolio = () => {
           <p className="hero-subtitle">// Welcome to my portfolio</p>
           <h1 className="hero-title">
             <span className="pink-text">DANIEL CASTILLO</span>
-            <span className="typed-text">{typedText}<span className="typing-cursor"></span></span>
+            <span className="typed-text">
+              {typedText}
+              <span className="typing-cursor"></span>
+            </span>
           </h1>
           <p className="hero-description">
             Building clean, efficient web applications with modern technologies.
-            Based in Utah, currently pursuing my technical certificate while actively seeking
-            opportunities to grow as an engineer.
+            Based in Utah, currently pursuing my technical certificate while
+            actively seeking opportunities to grow as an engineer.
           </p>
           <div className="scroll-indicator">
             <span>Scroll</span>
@@ -1282,25 +1253,37 @@ const CyberpunkPortfolio = () => {
             <p className="about-title">Software Engineer</p>
             <div className="about-bio">
               <p>
-                I'm a 25-year-old software engineer based in Utah with a passion for
-                building intuitive, user-friendly web applications. I'm currently
-                pursuing my technical certificate at Dixie Technical College.
+                I'm a 24-year-old software engineer based in Utah with a passion
+                for building intuitive, user-friendly web applications. I'm
+                currently pursuing my technical certificate at Dixie Technical
+                College.
               </p>
               <p>
-                My focus is on full-stack web development, with experience in JavaScript,
-                React, Python, and database management. I enjoy tackling complex problems
-                and turning them into clean, efficient solutions.
+                My focus is on full-stack web development, with experience in
+                JavaScript, React, Python, and database management. I enjoy
+                tackling complex problems and turning them into clean, efficient
+                solutions.
               </p>
               <p>
-                I'm actively seeking opportunities where I can apply my skills, learn from
-                experienced developers, and contribute to meaningful projects. Outside of
-                coding, I enjoy baking. There's a lot of overlap between the two: both require
-                following precise steps, experimenting with different combinations, and debugging
-                when things don't rise as expected.
+                I'm actively seeking opportunities where I can apply my skills,
+                learn from experienced developers, and contribute to meaningful
+                projects. Outside of coding, I enjoy baking. There's a lot of
+                overlap between the two: both require following precise steps,
+                experimenting with different combinations, and debugging when
+                things don't rise as expected.
               </p>
             </div>
             <a href="mailto:dancastlebiz@gmail.com" className="say-hi-btn">
-              <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width={20}
+                height={20}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                 <polyline points="22,6 12,13 2,6"></polyline>
               </svg>
@@ -1326,7 +1309,9 @@ const CyberpunkPortfolio = () => {
                 <p className="timeline-description">{exp.description}</p>
                 <div className="timeline-highlights">
                   {exp.highlights.map((highlight, i) => (
-                    <span key={i} className="highlight-tag">{highlight}</span>
+                    <span key={i} className="highlight-tag">
+                      {highlight}
+                    </span>
                   ))}
                 </div>
               </div>
@@ -1371,21 +1356,40 @@ const CyberpunkPortfolio = () => {
               <p className="project-description">{project.description}</p>
               <div className="project-tech">
                 {project.tech.map((tech, i) => (
-                  <span key={i} className="tech-tag">{tech}</span>
+                  <span key={i} className="tech-tag">
+                    {tech}
+                  </span>
                 ))}
               </div>
               <div className="project-links">
-                <a href={project.liveLink} target="_blank" rel="noopener noreferrer" className="project-link">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <a
+                  href={project.liveLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="project-link"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                     <polyline points="15 3 21 3 21 9"></polyline>
                     <line x1="10" y1="14" x2="21" y2="3"></line>
                   </svg>
                   Demo
                 </a>
-                <a href={project.githubLink} target="_blank" rel="noopener noreferrer" className="project-link">
+                <a
+                  href={project.githubLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="project-link"
+                >
                   <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+                    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
                   </svg>
                   Code
                 </a>
@@ -1411,7 +1415,7 @@ const CyberpunkPortfolio = () => {
               <div className="skill-bar">
                 <div
                   className="skill-progress"
-                  style={{ width: isLoaded ? `${skill.level}%` : '0%' }}
+                  style={{ width: isLoaded ? `${skill.level}%` : "0%" }}
                 ></div>
               </div>
             </div>
@@ -1419,42 +1423,9 @@ const CyberpunkPortfolio = () => {
         </div>
       </section>
 
-      {/* Contact Section */}
-      <section id="contact" className="fade-in-section">
-        <div className="section-header">
-          <p className="section-tag">// Get in touch</p>
-          <h2 className="section-title">Contact</h2>
-        </div>
-        <div className="contact-container">
-          <form className="contact-form" onSubmit={handleContactSubmit}>
-            <div className="form-group">
-              <label className="form-label" htmlFor="name">Name</label>
-              <input className="form-input" type="text" id="name" name="name" required />
-            </div>
-            <div className="form-group">
-              <label className="form-label" htmlFor="email">Email</label>
-              <input className="form-input" type="email" id="email" name="email" required />
-            </div>
-            <div className="form-group">
-              <label className="form-label" htmlFor="message">Message</label>
-              <textarea className="form-textarea" id="message" name="message" required></textarea>
-            </div>
-            <button type="submit" className="submit-btn">Send Message</button>
-            {contactStatus === 'sent' && (
-              <p className="contact-status sent">Message sent successfully. I'll get back to you soon!</p>
-            )}
-            {contactStatus === 'error' && (
-              <p className="contact-status error">Something went wrong. Please email me directly at dancastlebiz@gmail.com</p>
-            )}
-          </form>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="footer">
-        <p className="footer-text">
-          &copy; Daniel Castillo 2026
-        </p>
+        <p className="footer-text">&copy; Daniel Castillo 2026</p>
       </footer>
     </div>
   );
