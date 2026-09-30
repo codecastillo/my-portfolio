@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useImperativeHandle, useRef, useState } from "react";
 import {
   APP_STORE_URL,
   EMAIL,
@@ -124,6 +124,54 @@ const DAMPING = 0.8;
 // is slow, wherever it is; every other dot must also be home.
 const REST_SPEED = 0.05;
 const REST_DISTANCE = 0.5;
+// After this many physics steps with a still pointer, held dots count as
+// settled at any speed. A dot that lands near the unstable side of its ring
+// around the pointer can otherwise creep toward the stable side for seconds,
+// keeping the loop alive for one dot. Dots that are not held still go home.
+const POINTER_REST_STEPS = 120;
+// The burst easter egg: dots fly out across the viewport and ease back home
+// over BURST_MS. Each dot flies a random share of the viewport diagonal,
+// roughly away from the portrait center, and starts home a little late so
+// they return as a swarm rather than in lockstep.
+const BURST_MS = 2000;
+const BURST_OUT_SHARE = 0.18;
+const BURST_STAGGER = 0.12;
+const BURST_DISTANCE_MIN = 0.25;
+const BURST_DISTANCE_MAX = 0.85;
+const BURST_ANGLE_JITTER = 0.6;
+// Burst only once this much of the portrait is on screen
+const BURST_VISIBLE_SHARE = 0.5;
+// A burst waiting on its scroll gives up this long after scrolling stops,
+// so a code the visitor scrolled away from never fires later on its own
+const PENDING_BURST_MS = 1500;
+// Keys that scroll the page; pressing one cancels a waiting burst
+const SCROLL_KEYS = new Set([
+  "ArrowUp",
+  "ArrowDown",
+  "ArrowLeft",
+  "ArrowRight",
+  "PageUp",
+  "PageDown",
+  "Home",
+  "End",
+  " ",
+]);
+// Reduced motion gets a short fade pulse instead of the burst
+const PULSE_MS = 360;
+
+const easeOutCubic = (t) => 1 - (1 - t) ** 3;
+const easeInOutCubic = (t) =>
+  t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2;
+
+// How far out a bursting dot is at progress t (0 to 1), given its stagger:
+// out fast, a beat of hang time, then eased home
+const burstReach = (t, delay) => {
+  if (t < BURST_OUT_SHARE) {
+    return easeOutCubic(t / BURST_OUT_SHARE);
+  }
+  const back = (t - BURST_OUT_SHARE - delay) / (1 - BURST_OUT_SHARE - delay);
+  return 1 - easeInOutCubic(Math.min(1, Math.max(0, back)));
+};
 
 const percentile = (sorted, fraction) =>
   sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * fraction))];
@@ -179,9 +227,18 @@ const readPortrait = (imageData) => {
   return dots;
 };
 
-const DotPortrait = ({ className }) => {
+const DotPortrait = ({ className, ref }) => {
   const canvasRef = useRef(null);
+  const burstRef = useRef(null);
   const [failed, setFailed] = useState(false);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      burst: () => burstRef.current?.(),
+    }),
+    [],
+  );
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -206,7 +263,12 @@ const DotPortrait = ({ className }) => {
     let visible = true;
     let settled = true;
     let pointer = null;
+    let stepsSincePointerMove = 0;
     let disposed = false;
+    let burst = null;
+    let burstFrame = 0;
+    let pendingBurst = null;
+    let pulse = null;
 
     const sendHome = () => {
       for (let i = 0; i < dots.count; i += 1) {
@@ -233,9 +295,10 @@ const DotPortrait = ({ className }) => {
       sendHome();
     };
 
-    const draw = () => {
-      context.clearRect(0, 0, width, height);
-      context.fillStyle = color;
+    // Draws every dot into target, offset by (originX, originY); the burst
+    // overlay passes the canvas position so dots stay tied to the portrait
+    const drawDots = (target, originX, originY) => {
+      target.fillStyle = color;
       let start = 0;
       for (let level = 0; level < PORTRAIT_LEVELS; level += 1) {
         const end = dots.levelEnd[level];
@@ -245,18 +308,28 @@ const DotPortrait = ({ className }) => {
             spacing *
             (PORTRAIT_RADIUS_MIN +
               (PORTRAIT_RADIUS_MAX - PORTRAIT_RADIUS_MIN) * t);
-          context.globalAlpha =
+          target.globalAlpha =
             PORTRAIT_OPACITY_MIN + (1 - PORTRAIT_OPACITY_MIN) * t;
-          context.beginPath();
+          target.beginPath();
           for (let i = start; i < end; i += 1) {
-            context.moveTo(dots.x[i] + radius, dots.y[i]);
-            context.arc(dots.x[i], dots.y[i], radius, 0, Math.PI * 2);
+            const x = originX + dots.x[i];
+            const y = originY + dots.y[i];
+            target.moveTo(x + radius, y);
+            target.arc(x, y, radius, 0, Math.PI * 2);
           }
-          context.fill();
+          target.fill();
         }
         start = end;
       }
-      context.globalAlpha = 1;
+      target.globalAlpha = 1;
+    };
+
+    const draw = () => {
+      context.clearRect(0, 0, width, height);
+      // While bursting the dots live on the overlay, so the portrait is empty
+      if (!burst) {
+        drawDots(context, 0, 0);
+      }
     };
 
     // One physics step per frame. The loop ends itself as soon as every dot
@@ -265,6 +338,8 @@ const DotPortrait = ({ className }) => {
     const step = () => {
       frame = 0;
       let moving = false;
+      stepsSincePointerMove += 1;
+      const pointerResting = stepsSincePointerMove > POINTER_REST_STEPS;
       for (let i = 0; i < dots.count; i += 1) {
         let held = false;
         if (pointer) {
@@ -295,7 +370,7 @@ const DotPortrait = ({ className }) => {
           dots.y[i] = dots.homeY[i];
           dots.vx[i] = 0;
           dots.vy[i] = 0;
-        } else if (!slow || !held) {
+        } else if (!held || (!slow && !pointerResting)) {
           moving = true;
         }
       }
@@ -307,7 +382,7 @@ const DotPortrait = ({ className }) => {
     };
 
     const start = () => {
-      if (!frame && visible && dots && isInteractive()) {
+      if (!frame && !burst && visible && dots && isInteractive()) {
         frame = window.requestAnimationFrame(step);
       }
     };
@@ -319,12 +394,196 @@ const DotPortrait = ({ className }) => {
       }
     };
 
+    const endBurst = () => {
+      if (burstFrame) {
+        window.cancelAnimationFrame(burstFrame);
+        burstFrame = 0;
+      }
+      burst?.overlay.remove();
+      burst = null;
+    };
+
+    const burstStep = (now) => {
+      burstFrame = 0;
+      const t = Math.min(1, (now - burst.start) / BURST_MS);
+      for (let i = 0; i < dots.count; i += 1) {
+        const reach = burstReach(t, burst.delay[i]);
+        dots.x[i] = dots.homeX[i] + burst.offsetX[i] * reach;
+        dots.y[i] = dots.homeY[i] + burst.offsetY[i] * reach;
+      }
+      const { overlayContext, overlayWidth, overlayHeight } = burst;
+      overlayContext.clearRect(0, 0, overlayWidth, overlayHeight);
+      // Snapped to device pixels as the browser snaps the canvas itself, so
+      // the handoff between canvas and overlay does not shift the portrait
+      const ratio = window.devicePixelRatio || 1;
+      const box = canvas.getBoundingClientRect();
+      drawDots(
+        overlayContext,
+        Math.round(box.left * ratio) / ratio,
+        Math.round(box.top * ratio) / ratio,
+      );
+      if (t < 1) {
+        burstFrame = window.requestAnimationFrame(burstStep);
+        return;
+      }
+      endBurst();
+      sendHome();
+      draw();
+    };
+
+    const startBurst = () => {
+      stop();
+      pointer = null;
+      sendHome();
+      // A second burst reuses the overlay instead of stacking another
+      let overlay = burst?.overlay;
+      if (burstFrame) {
+        window.cancelAnimationFrame(burstFrame);
+        burstFrame = 0;
+      }
+      if (!overlay) {
+        overlay = document.createElement("canvas");
+        overlay.className = "portrait-burst";
+        overlay.setAttribute("aria-hidden", "true");
+        document.body.append(overlay);
+      }
+      // Sized from the overlay's own box, not innerWidth, which includes a
+      // classic scrollbar and would squeeze the drawing
+      const ratio = window.devicePixelRatio || 1;
+      const overlayWidth = overlay.clientWidth;
+      const overlayHeight = overlay.clientHeight;
+      overlay.width = Math.round(overlayWidth * ratio);
+      overlay.height = Math.round(overlayHeight * ratio);
+      const overlayContext = overlay.getContext("2d");
+      overlayContext.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+      const reachScale = Math.hypot(overlayWidth, overlayHeight);
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const offsetX = new Float32Array(dots.count);
+      const offsetY = new Float32Array(dots.count);
+      const delay = new Float32Array(dots.count);
+      for (let i = 0; i < dots.count; i += 1) {
+        const angle =
+          Math.atan2(dots.homeY[i] - centerY, dots.homeX[i] - centerX) +
+          (Math.random() - 0.5) * 2 * BURST_ANGLE_JITTER;
+        const distance =
+          reachScale *
+          (BURST_DISTANCE_MIN +
+            (BURST_DISTANCE_MAX - BURST_DISTANCE_MIN) * Math.random());
+        offsetX[i] = Math.cos(angle) * distance;
+        offsetY[i] = Math.sin(angle) * distance;
+        delay[i] = Math.random() * BURST_STAGGER;
+      }
+      burst = {
+        overlay,
+        overlayContext,
+        overlayWidth,
+        overlayHeight,
+        offsetX,
+        offsetY,
+        delay,
+        start: performance.now(),
+      };
+      draw();
+      burstFrame = window.requestAnimationFrame(burstStep);
+    };
+
+    const playBurst = () => {
+      // The duck game owns the page while it runs
+      if (document.documentElement.dataset.game === "on") {
+        return;
+      }
+      if (reducedMotion.matches) {
+        pulse?.cancel();
+        pulse = canvas.animate?.(
+          [{ opacity: 1 }, { opacity: 0.35 }, { opacity: 1 }],
+          { duration: PULSE_MS, easing: "ease-in-out" },
+        );
+        return;
+      }
+      startBurst();
+    };
+
+    const disarmPendingBurst = () => {
+      if (!pendingBurst) {
+        return;
+      }
+      pendingBurst.observer.disconnect();
+      window.clearTimeout(pendingBurst.timer);
+      window.removeEventListener("scroll", pendingBurst.onScroll);
+      window.removeEventListener("wheel", disarmPendingBurst);
+      window.removeEventListener("touchstart", disarmPendingBurst);
+      window.removeEventListener("keydown", pendingBurst.onKeyDown);
+      pendingBurst = null;
+    };
+
+    // Offscreen, the portrait is scrolled into view first and bursts once
+    // enough of it shows. The visitor scrolling by hand, or the scroll
+    // settling without the portrait showing, cancels the wait.
+    burstRef.current = () => {
+      if (!dots) {
+        return;
+      }
+      disarmPendingBurst();
+      const box = canvas.getBoundingClientRect();
+      const shown =
+        Math.min(box.bottom, window.innerHeight) - Math.max(box.top, 0);
+      if (shown >= box.height * BURST_VISIBLE_SHARE || !hasObserver) {
+        if (shown < box.height * BURST_VISIBLE_SHARE) {
+          canvas.scrollIntoView({ block: "center" });
+        }
+        playBurst();
+        return;
+      }
+      canvas.scrollIntoView({
+        behavior: reducedMotion.matches ? "auto" : "smooth",
+        block: "center",
+      });
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.intersectionRatio >= BURST_VISIBLE_SHARE) {
+            disarmPendingBurst();
+            playBurst();
+          }
+        },
+        { threshold: BURST_VISIBLE_SHARE },
+      );
+      const pending = {
+        observer,
+        timer: window.setTimeout(disarmPendingBurst, PENDING_BURST_MS),
+        // Each scroll event pushes the deadline back, so it runs from
+        // when the smooth scroll settles
+        onScroll: () => {
+          window.clearTimeout(pending.timer);
+          pending.timer = window.setTimeout(
+            disarmPendingBurst,
+            PENDING_BURST_MS,
+          );
+        },
+        onKeyDown: (event) => {
+          if (SCROLL_KEYS.has(event.key)) {
+            disarmPendingBurst();
+          }
+        },
+      };
+      pendingBurst = pending;
+      window.addEventListener("scroll", pending.onScroll, { passive: true });
+      window.addEventListener("wheel", disarmPendingBurst, { passive: true });
+      window.addEventListener("touchstart", disarmPendingBurst, {
+        passive: true,
+      });
+      window.addEventListener("keydown", pending.onKeyDown);
+      observer.observe(canvas);
+    };
+
     const onPointerMove = (event) => {
-      if (event.pointerType === "touch" || !isInteractive()) {
+      if (event.pointerType === "touch" || burst || !isInteractive()) {
         return;
       }
       const box = canvas.getBoundingClientRect();
       pointer = { x: event.clientX - box.left, y: event.clientY - box.top };
+      stepsSincePointerMove = 0;
       settled = false;
       start();
     };
@@ -340,6 +599,7 @@ const DotPortrait = ({ className }) => {
         return;
       }
       stop();
+      endBurst();
       layout();
       // Read once here: the canvas takes its color from CSS
       color = getComputedStyle(canvas).color;
@@ -353,6 +613,7 @@ const DotPortrait = ({ className }) => {
         return;
       }
       stop();
+      endBurst();
       pointer = null;
       sendHome();
       draw();
@@ -411,9 +672,13 @@ const DotPortrait = ({ className }) => {
 
     return () => {
       disposed = true;
+      burstRef.current = null;
       image.onload = null;
       image.onerror = null;
       stop();
+      endBurst();
+      disarmPendingBurst();
+      pulse?.cancel();
       resizeObserver?.disconnect();
       window.removeEventListener("resize", refresh);
       visibilityObserver?.disconnect();
@@ -438,6 +703,70 @@ const DotPortrait = ({ className }) => {
       />
     </div>
   );
+};
+
+// The Konami code. Keys are compared lowercased so B and A match with Shift
+// or Caps Lock on.
+const KONAMI_CODE = [
+  "arrowup",
+  "arrowup",
+  "arrowdown",
+  "arrowdown",
+  "arrowleft",
+  "arrowright",
+  "arrowleft",
+  "arrowright",
+  "b",
+  "a",
+];
+const MODIFIER_KEYS = new Set(["shift", "control", "alt", "meta", "capslock"]);
+
+const isTypingTarget = (target) =>
+  target instanceof Element &&
+  (target.isContentEditable || target.matches("input, textarea, select"));
+
+// Calls onMatch when the last sequence.length keys typed equal sequence, so
+// extra or wrong keys before the code never block it. Arrow keys keep their
+// default scrolling. While a game marks the page with data-game="on" the
+// arrows belong to the game, so every key is ignored and the keys so far
+// are forgotten.
+const useKeySequence = (sequence, onMatch) => {
+  const onMatchRef = useRef(onMatch);
+  useEffect(() => {
+    onMatchRef.current = onMatch;
+  });
+
+  useEffect(() => {
+    let recent = [];
+    const onKeyDown = (event) => {
+      if (document.documentElement.dataset.game === "on") {
+        recent = [];
+        return;
+      }
+      const key = event.key?.toLowerCase();
+      if (
+        !key ||
+        event.repeat ||
+        event.ctrlKey ||
+        event.altKey ||
+        event.metaKey ||
+        MODIFIER_KEYS.has(key) ||
+        isTypingTarget(event.target)
+      ) {
+        return;
+      }
+      recent = [...recent, key].slice(-sequence.length);
+      if (
+        recent.length === sequence.length &&
+        recent.every((typed, i) => typed === sequence[i])
+      ) {
+        recent = [];
+        onMatchRef.current();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [sequence]);
 };
 
 // Sections start visible and are only hidden once an observer exists to
@@ -482,7 +811,9 @@ const useRevealOnScroll = (rootRef) => {
 
 const Portfolio = () => {
   const mainRef = useRef(null);
+  const portraitRef = useRef(null);
   useRevealOnScroll(mainRef);
+  useKeySequence(KONAMI_CODE, () => portraitRef.current?.burst());
 
   return (
     <>
@@ -694,7 +1025,7 @@ const Portfolio = () => {
               From the database schema to the App Store listing, I do the whole
               thing.
             </h2>
-            <DotPortrait className="about-portrait" />
+            <DotPortrait ref={portraitRef} className="about-portrait" />
             <div className="about-copy">
               <p>
                 I'm finishing a Software Development certificate at Dixie

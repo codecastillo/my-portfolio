@@ -1,16 +1,16 @@
 :root {
   color-scheme: dark;
-  --navy: #0b1120;
+  --navy: #1a1433;
   --text: #eef1f7;
   --muted: #a7b0c2;
   --line: rgba(238, 241, 247, 0.16);
 
   /* Each product owns one accent: a light tint for its tag and button, and
      a deep shade that only ever appears as its section's glow */
-  --rose: #ec8fa8;
-  --rose-deep: #8c2f52;
-  --teal: #5ccfc3;
-  --teal-deep: #0d6b6a;
+  --pink: #ff2a6d;
+  --pink-deep: #8a1a4f;
+  --cyan: #05d9e8;
+  --cyan-deep: #046e7a;
 
   --display: "Bricolage Grotesque", "Arial Black", sans-serif;
   --font: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -108,7 +108,7 @@ a:focus-visible,
 }
 
 ::selection {
-  background: var(--rose);
+  background: var(--pink);
   color: var(--navy);
 }
 
@@ -174,7 +174,7 @@ a:focus-visible,
   z-index: 10;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
   padding: var(--space-4) var(--page-inline);
   background: color-mix(in srgb, var(--navy) 94%, transparent);
   color: var(--text);
@@ -313,11 +313,11 @@ a:focus-visible,
 }
 
 .live-tag.is-mello {
-  background: var(--rose);
+  background: var(--pink);
 }
 
 .live-tag.is-permit {
-  background: var(--teal);
+  background: var(--cyan);
 }
 
 .live-dot {
@@ -399,13 +399,13 @@ a:focus-visible,
 }
 
 .band-mello {
-  --accent: var(--rose);
-  --glow: var(--rose-deep);
+  --accent: var(--pink);
+  --glow: var(--pink-deep);
 }
 
 .band-permit {
-  --accent: var(--teal);
-  --glow: var(--teal-deep);
+  --accent: var(--cyan);
+  --glow: var(--cyan-deep);
 }
 
 .band-label {
@@ -526,7 +526,9 @@ a:focus-visible,
   padding: 0.1rem 0.6rem;
   border: 1px solid var(--accent);
   border-radius: var(--radius-pill);
-  color: var(--accent);
+  /* Neon pink text drops below 4.5:1 over its own glow, so only the outline
+     carries the accent */
+  color: var(--text);
   font-size: var(--step--1);
   font-weight: 600;
 }
@@ -892,6 +894,17 @@ a:focus-visible,
   color: var(--text);
 }
 
+/* Full-viewport layer for the burst easter egg, so dots can fly past the
+   portrait's edges; it exists only while the burst plays */
+.portrait-burst {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
 .about-copy {
   display: grid;
   gap: var(--space-4);
@@ -948,7 +961,7 @@ a:focus-visible,
 }
 
 .contact-email:hover {
-  text-decoration-color: var(--rose);
+  text-decoration-color: var(--pink);
 }
 
 /* Footer */
