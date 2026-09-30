@@ -843,11 +843,53 @@ a:focus-visible,
   gap: var(--space-6) clamp(2rem, 6vw, 6rem);
 }
 
+/* Wide screens: the portrait sits beside the heading and copy, so it reads
+   as the person behind the page. Stacked, it comes between them. */
 @media (min-width: 60rem) {
   .about-grid {
-    grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    grid-template-areas:
+      "portrait title"
+      "portrait copy";
     align-items: start;
   }
+
+  .about-title {
+    grid-area: title;
+    align-self: end;
+  }
+
+  .about-portrait {
+    grid-area: portrait;
+    align-self: center;
+  }
+
+  .about-copy {
+    grid-area: copy;
+  }
+
+  /* If the portrait image fails, the portrait is removed; the text then
+     takes the full width instead of leaving an empty column */
+  .about-grid:not(:has(.about-portrait)) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "title"
+      "copy";
+  }
+}
+
+.about-portrait {
+  max-width: 30rem;
+}
+
+/* The ratio matches the dot grid, so the space is held before the image
+   loads and nothing below shifts */
+.portrait {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 88 / 75;
+  color: var(--text);
 }
 
 .about-copy {
