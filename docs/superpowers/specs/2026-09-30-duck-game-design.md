@@ -62,8 +62,8 @@ phones and tablets there is no toggle and no game code is downloaded.
    divider lines. The duck lands on them from above and passes through them
    from below (one-way platforms).
 4. The page scrolls to keep the duck in the middle third of the viewport. If
-   the duck falls below the last platform it respawns on the nearest platform
-   above its last safe position.
+   the duck falls below the bottom of the page it respawns at the last spot
+   where it stood on a platform.
 5. Touching a blueprint collects it with a short sparkle, increments the
    counter and announces "Blueprint 2 of 5" through a polite live region.
 6. At 5 of 5 the win card appears centered over the page: "Hired?", the
@@ -82,7 +82,8 @@ phones and tablets there is no toggle and no game code is downloaded.
 - **Rendering.** A single fixed, full-viewport canvas with
   `pointer-events: none` and `aria-hidden="true"` draws the duck, blueprints
   and effects in page coordinates offset by scroll. Colors come from CSS
-  custom properties: duck in `--text`, blueprints in `--teal`.
+  custom properties: duck body in `--text` with a `--rose` beak and feet,
+  blueprints in `--teal`.
 - **Platforms.** On start and on resize, scroll or layout change
   (ResizeObserver on `main`), the game reads `getBoundingClientRect()` of the
   platform elements, found with one selector list, and stores their top
@@ -112,9 +113,12 @@ phones and tablets there is no toggle and no game code is downloaded.
 
 ## Verification
 
-- Playwright at 1440x900: start the game, drive the duck with scripted key
-  presses to each blueprint (their positions are known), and assert the
-  counter reaches 5 and the win card opens with the email.
+- Playwright at 1440x900 against the dev server: start the game, check every
+  blueprint is reachable from the start with a movement-envelope search over
+  the real platforms, then for each blueprint place the duck beside it through
+  a development-only hook (`import.meta.env.DEV`, stripped from production)
+  and collect it with real key presses. Assert the counter reaches 5 and the
+  win card opens with the email.
 - Copy button writes the email to the clipboard (with a permission grant in
   the test).
 - Exit restores the page: no overlay canvas, no listeners (checked with a
