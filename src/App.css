@@ -953,6 +953,140 @@ a:focus-visible,
   transform: translateY(var(--space-6));
 }
 
+/* Game mode */
+
+/* Pinned to the left edge so the centered nav stays centered */
+.game-toggle {
+  position: absolute;
+  top: 50%;
+  left: var(--page-inline);
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: var(--step--1);
+}
+
+.game-toggle[aria-pressed="true"] {
+  border-color: var(--cyan);
+  color: var(--text);
+}
+
+.game-toggle-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.game-toggle[aria-pressed="true"] .game-toggle-dot {
+  background: var(--cyan);
+}
+
+.game-toggle:focus-visible,
+.game-win button:focus-visible {
+  outline: 3px solid var(--text);
+  outline-offset: 4px;
+}
+
+/* Fixed and click-through, so the page underneath stays exactly as it was */
+.game-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.game-hud {
+  position: fixed;
+  top: 4.5rem;
+  right: var(--page-inline);
+  z-index: 21;
+  display: grid;
+  justify-items: end;
+  gap: var(--space-2);
+  pointer-events: none;
+}
+
+.game-count,
+.game-hint {
+  margin: 0;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--navy);
+  font-size: var(--step--1);
+}
+
+.game-count {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.game-hint {
+  color: var(--muted);
+}
+
+.game-announce {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.game-win {
+  max-width: min(32rem, calc(100vw - 2 * var(--gutter)));
+  padding: var(--space-6);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: var(--navy);
+  color: var(--text);
+  text-align: center;
+}
+
+.game-win::backdrop {
+  background: rgb(0 0 0 / 0.6);
+}
+
+.game-win-title {
+  margin: 0;
+  font-family: var(--display);
+  font-size: var(--step-4);
+  font-weight: 800;
+}
+
+.game-win-email {
+  margin: var(--space-3) 0 var(--space-5);
+  font-size: var(--step-1);
+  overflow-wrap: anywhere;
+}
+
+.game-win-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+.game-win-secondary {
+  padding: 0.9rem 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--text);
+  font: inherit;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

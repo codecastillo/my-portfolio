@@ -32,8 +32,8 @@ In:
 - A "Game mode" toggle in the top bar, visible only on desktop.
 - A pixel-art duck drawn in code, moved by the keyboard, colliding with real
   page elements.
-- Five blueprint collectibles, one each in: hero, Mello, Permit Miner,
-  Before software, About.
+- Five blueprint collectibles, one each in: the About section at the top,
+  Mello, Permit Miner, Before software, and the name wordmark.
 - A "0 / 5" counter while playing.
 - A win card: "Hired? dancastlebiz@gmail.com" with a copy-email button.
 - Exit with Esc or the toggle, restoring the page exactly.
@@ -50,14 +50,15 @@ phones and tablets there is no toggle and no game code is downloaded.
 ## Experience
 
 1. The visitor clicks "Game mode" (a `button` with `aria-pressed`). The duck
-   appears standing on the hero tagline. The counter shows "0 / 5". A one-line
+   appears standing on the rule above the About tags and icons. The counter shows "0 / 5". A one-line
    hint shows the controls for 4 seconds: "Arrows or A/D to move, Space or W to
    jump, Esc to exit".
 2. The duck waddles with Left/Right or A/D and jumps with Space, Up or W.
    Holding jump in the air slows the fall slightly (a flap), which is the
    duck's one trick.
 3. Platforms are the top edges of real elements: section headings and
-   eyebrows, the hero tagline, live tags and buttons, product "built" list
+   eyebrows, the About tag and icon row, live tags and buttons, the two
+   lines of the name wordmark, product "built" list
    items, skill chips, "Also built" and "Before software" rows, and section
    divider lines. The duck lands on them from above and passes through them
    from below (one-way platforms).
