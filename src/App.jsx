@@ -6,7 +6,10 @@ import {
   LINKEDIN_URL,
   MELLO_URL,
   PERMIT_MINER_URL,
+  beforeSoftware,
+  beforeSoftwareIntro,
   melloBuilt,
+  melloInProgress,
   melloScreens,
   otherProjects,
   permitBuilt,
@@ -77,6 +80,21 @@ const BuiltList = ({ items }) => (
   </ul>
 );
 
+// Work that has not shipped yet, kept visually below the shipped list
+const InProgress = ({ id, title, summary, items }) => (
+  <div className="in-progress">
+    <h3 id={id} className="in-progress-title">
+      <span className="status">In progress</span> {title}
+    </h3>
+    <p>{summary}</p>
+    <ul aria-labelledby={id}>
+      {items.map((item) => (
+        <li key={item}>{item}</li>
+      ))}
+    </ul>
+  </div>
+);
+
 // Sections start visible and are only hidden once an observer exists to
 // reveal them, so a missing or failing observer can never leave the page
 // blank. Reduced motion skips the effect entirely.
@@ -127,6 +145,7 @@ const Portfolio = () => {
         <nav aria-label="Primary">
           <a href="#mello">Mello</a>
           <a href="#permit-miner">Permit Miner</a>
+          <a href="#before-software">Before software</a>
           <a href="#about">About</a>
           <a href={`mailto:${EMAIL}`}>Email</a>
         </nav>
@@ -193,6 +212,7 @@ const Portfolio = () => {
             </p>
             <Facts items={melloFacts} />
             <BuiltList items={melloBuilt} />
+            <InProgress id="mello-next-title" {...melloInProgress} />
             <p className="band-links">
               <ExternalLink href={APP_STORE_URL} className="pill">
                 Get it on the App Store
@@ -288,6 +308,30 @@ const Portfolio = () => {
                     <Arrow />
                   </span>
                 </ExternalLink>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section
+          className="before"
+          id="before-software"
+          data-reveal=""
+          aria-labelledby="before-title"
+        >
+          <h2 id="before-title" className="eyebrow">
+            Before software
+          </h2>
+          <p className="before-intro">{beforeSoftwareIntro}</p>
+          <ul>
+            {beforeSoftware.map((venture) => (
+              <li key={venture.name} className="before-row">
+                <h3 className="before-name">{venture.name}</h3>
+                <p className="before-meta">
+                  <span>{venture.role}</span>
+                  <span>{venture.dates}</span>
+                </p>
+                <p className="before-description">{venture.description}</p>
               </li>
             ))}
           </ul>

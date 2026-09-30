@@ -498,6 +498,69 @@ a:focus-visible,
   background: var(--accent);
 }
 
+/* Work that has not shipped: a dashed frame, muted copy and outlined
+   markers keep it visually below the shipped list above it */
+.in-progress {
+  max-width: 34rem;
+  margin-top: var(--space-6);
+  padding: var(--space-4) var(--space-5);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  color: var(--muted);
+  font-size: var(--step--1);
+  line-height: 1.4;
+}
+
+.in-progress-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin: 0 0 var(--space-2);
+  color: var(--text);
+  font-size: var(--step-0);
+  font-weight: 600;
+}
+
+.status {
+  padding: 0.1rem 0.6rem;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-pill);
+  color: var(--accent);
+  font-size: var(--step--1);
+  font-weight: 600;
+}
+
+.in-progress ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2) var(--space-5);
+  margin-top: var(--space-3);
+}
+
+/* One column on phones: the boxed list is narrower than the shipped list
+   above it, so two columns would wrap every item */
+@media (max-width: 40rem) {
+  .in-progress ul {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.in-progress li {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.in-progress li::before {
+  content: "";
+  flex: none;
+  width: 0.4rem;
+  height: 0.4rem;
+  margin-top: 0.5em;
+  border: 1px solid var(--accent);
+  border-radius: 1px;
+}
+
 .band-links {
   display: flex;
   flex-wrap: wrap;
@@ -687,6 +750,79 @@ a:focus-visible,
   transform: translate(2px, -2px);
 }
 
+/* Before software: the Also built row grid without links or arrows, and
+   names in mixed case, so the ventures read as history, not more projects */
+
+.before {
+  padding: var(--space-section) var(--page-inline) 0;
+}
+
+.before-intro {
+  max-width: 40ch;
+  margin-bottom: var(--space-6);
+  color: var(--muted);
+  font-size: var(--step-1);
+}
+
+.before ul {
+  border-top: 1px solid var(--line);
+}
+
+.before li {
+  border-bottom: 1px solid var(--line);
+}
+
+.before-row {
+  display: grid;
+  gap: var(--space-1) var(--space-6);
+  padding-block: var(--space-5);
+}
+
+.before-name {
+  margin: 0;
+  font-family: var(--display);
+  font-size: var(--step-2);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.before-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-3);
+  color: var(--muted);
+  font-size: var(--step--1);
+}
+
+.before-meta span:first-child {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.before-description {
+  max-width: 60ch;
+  color: var(--muted);
+}
+
+/* Same columns as Also built, so descriptions share its left edge */
+@media (min-width: 64rem) {
+  .before-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 24rem) 7rem;
+  }
+
+  .before-name,
+  .before-meta {
+    grid-column: 1;
+  }
+
+  .before-description {
+    grid-column: 2 / -1;
+    grid-row: 1 / span 2;
+    align-self: center;
+  }
+}
+
 /* About */
 
 .about {
@@ -724,6 +860,7 @@ a:focus-visible,
 .stack {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: var(--space-3);
   margin-top: clamp(2.5rem, 5vw, 4rem);
 }
@@ -776,9 +913,9 @@ a:focus-visible,
 
 .footer {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: var(--space-3) var(--space-6);
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
   padding: var(--space-5) var(--page-inline) var(--space-6);
   border-top: 1px solid var(--line);
   color: var(--muted);
