@@ -17,8 +17,11 @@ import {
 } from "./content.js";
 import "./App.css";
 
-const ExternalLink = ({ href, className, children }) => (
+// Extra props such as aria-label pass through, but never replace the
+// target and rel that every external link needs
+const ExternalLink = ({ href, className, children, ...rest }) => (
   <a
+    {...rest}
     href={href}
     className={className}
     target="_blank"
@@ -26,6 +29,61 @@ const ExternalLink = ({ href, className, children }) => (
   >
     {children}
   </a>
+);
+
+// Icons for the contact links; the link carries the accessible name, so
+// the drawing itself is hidden from assistive tech
+const Icon = ({ children }) => (
+  <svg
+    viewBox="0 0 24 24"
+    width="22"
+    height="22"
+    aria-hidden="true"
+    focusable="false"
+  >
+    {children}
+  </svg>
+);
+
+const MailIcon = () => (
+  <Icon>
+    <rect
+      x="3"
+      y="5"
+      width="18"
+      height="14"
+      rx="2"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+    />
+    <path
+      d="M3.5 6.5 12 13l8.5-6.5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Icon>
+);
+
+const GitHubIcon = () => (
+  <Icon>
+    <path
+      fill="currentColor"
+      d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.69 1.25 3.35.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.7 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+    />
+  </Icon>
+);
+
+const LinkedInIcon = () => (
+  <Icon>
+    <path
+      fill="currentColor"
+      d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13ZM7.12 20.45H3.56V9h3.56v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0Z"
+    />
+  </Icon>
 );
 
 // Mello figures come from the App Store listing; Permit Miner figures come
@@ -725,12 +783,58 @@ const isTypingTarget = (target) =>
   target instanceof Element &&
   (target.isContentEditable || target.matches("input, textarea, select"));
 
+// How many keys at the start of sequence the tail of keys spells out
+const matchedPrefix = (keys, sequence) => {
+  for (
+    let length = Math.min(keys.length, sequence.length);
+    length > 0;
+    length -= 1
+  ) {
+    const tail = keys.slice(-length);
+    if (tail.every((key, i) => key === sequence[i])) {
+      return length;
+    }
+  }
+  return 0;
+};
+
+// Whether a fine pointer is over the element, kept in a ref so event
+// handlers can read it without re-rendering
+const usePointerOver = (ref) => {
+  const over = useRef(false);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) {
+      return undefined;
+    }
+    const finePointer = window.matchMedia("(pointer: fine)");
+    const onEnter = (event) => {
+      over.current = event.pointerType !== "touch" && finePointer.matches;
+    };
+    const onLeave = () => {
+      over.current = false;
+    };
+    element.addEventListener("pointerenter", onEnter);
+    element.addEventListener("pointerleave", onLeave);
+    return () => {
+      element.removeEventListener("pointerenter", onEnter);
+      element.removeEventListener("pointerleave", onLeave);
+      over.current = false;
+    };
+  }, [ref]);
+
+  return over;
+};
+
 // Calls onMatch when the last sequence.length keys typed equal sequence, so
-// extra or wrong keys before the code never block it. Arrow keys keep their
-// default scrolling. While a game marks the page with data-game="on" the
-// arrows belong to the game, so every key is ignored and the keys so far
-// are forgotten.
-const useKeySequence = (sequence, onMatch) => {
+// extra or wrong keys before the code never block it. Arrow keys scroll as
+// usual, except while holdScrollRef is true: then an arrow press that takes
+// the code one key further does not scroll, and any other press, including
+// a third ArrowUp that only repeats the start of the code, still does. While a game marks the page with data-game="on" the arrows
+// belong to the game, so every key is ignored and the keys so far are
+// forgotten.
+const useKeySequence = (sequence, onMatch, holdScrollRef) => {
   const onMatchRef = useRef(onMatch);
   useEffect(() => {
     onMatchRef.current = onMatch;
@@ -738,9 +842,12 @@ const useKeySequence = (sequence, onMatch) => {
 
   useEffect(() => {
     let recent = [];
+    // How many keys of the code the typed keys ended on after the last press
+    let matched = 0;
     const onKeyDown = (event) => {
       if (document.documentElement.dataset.game === "on") {
         recent = [];
+        matched = 0;
         return;
       }
       const key = event.key?.toLowerCase();
@@ -756,17 +863,86 @@ const useKeySequence = (sequence, onMatch) => {
         return;
       }
       recent = [...recent, key].slice(-sequence.length);
+      const nextMatched = matchedPrefix(recent, sequence);
       if (
-        recent.length === sequence.length &&
-        recent.every((typed, i) => typed === sequence[i])
+        holdScrollRef?.current &&
+        key.startsWith("arrow") &&
+        nextMatched === matched + 1
       ) {
+        event.preventDefault();
+      }
+      matched = nextMatched;
+      if (matched === sequence.length) {
         recent = [];
+        matched = 0;
         onMatchRef.current();
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [sequence]);
+  }, [sequence, holdScrollRef]);
+};
+
+// Scrolling this far in one direction since the last change of direction
+// hides or shows the header, so small jitters do not flicker it
+const HEADER_SCROLL_THRESHOLD = 8;
+
+// True while the header should be tucked away: after scrolling down past its
+// own height, until the visitor scrolls up or returns near the top. Reads
+// scroll position at most once per frame, and only while scrolling.
+const useHideOnScroll = (headerRef) => {
+  const [hidden, setHidden] = useState(false);
+
+  useEffect(() => {
+    // Clamped to the real range so iOS rubber-banding past either end
+    // cannot count as a change of direction
+    const readScroll = () =>
+      Math.min(
+        Math.max(0, window.scrollY),
+        Math.max(0, document.documentElement.scrollHeight - window.innerHeight),
+      );
+    let frame = 0;
+    let lastY = readScroll();
+    let turnY = lastY;
+    let direction = 0;
+    let isHidden = false;
+
+    const update = () => {
+      frame = 0;
+      const y = readScroll();
+      const nextDirection = Math.sign(y - lastY) || direction;
+      if (nextDirection !== direction) {
+        direction = nextDirection;
+        turnY = lastY;
+      }
+      lastY = y;
+      let next = isHidden;
+      if (y <= (headerRef.current?.offsetHeight ?? 0)) {
+        next = false;
+      } else if (y - turnY >= HEADER_SCROLL_THRESHOLD) {
+        next = true;
+      } else if (turnY - y >= HEADER_SCROLL_THRESHOLD) {
+        next = false;
+      }
+      if (next !== isHidden) {
+        isHidden = next;
+        setHidden(next);
+      }
+    };
+
+    const onScroll = () => {
+      if (!frame) {
+        frame = window.requestAnimationFrame(update);
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.cancelAnimationFrame(frame);
+    };
+  }, [headerRef]);
+
+  return hidden;
 };
 
 // Sections start visible and are only hidden once an observer exists to
@@ -812,12 +988,25 @@ const useRevealOnScroll = (rootRef) => {
 const Portfolio = () => {
   const mainRef = useRef(null);
   const portraitRef = useRef(null);
+  const headerRef = useRef(null);
+  const headerHidden = useHideOnScroll(headerRef);
   useRevealOnScroll(mainRef);
-  useKeySequence(KONAMI_CODE, () => portraitRef.current?.burst());
+  const aboutRef = useRef(null);
+  // With the pointer over About the portrait is on screen, so arrows typed
+  // toward the code should not scroll it away
+  const pointerOverAbout = usePointerOver(aboutRef);
+  useKeySequence(
+    KONAMI_CODE,
+    () => portraitRef.current?.burst(),
+    pointerOverAbout,
+  );
 
   return (
     <>
-      <header className="top">
+      <header
+        ref={headerRef}
+        className={headerHidden ? "top is-hidden" : "top"}
+      >
         <nav aria-label="Primary">
           <a href="#mello">Mello</a>
           <a href="#permit-miner">Permit Miner</a>
@@ -828,43 +1017,62 @@ const Portfolio = () => {
       </header>
 
       <main ref={mainRef}>
-        <section className="hero" aria-labelledby="hero-title">
-          <h1 id="hero-title" className="display hero-name">
-            <span className="line">
-              <span>Daniel</span>
-            </span>
-            <span className="line">
-              <span>Castillo</span>
-            </span>
+        <section
+          ref={aboutRef}
+          className="about"
+          id="about"
+          aria-labelledby="about-name"
+        >
+          <h1 id="about-name" className="eyebrow about-name">
+            Daniel Castillo
           </h1>
-          <div className="hero-foot">
-            <p className="hero-line">
-              Software engineer in Utah. I build products and ship them to real
-              people.
-            </p>
-            <div>
-              <p className="live-tags">
-                <a href="#mello" className="live-tag is-mello">
-                  <span className="live-dot" aria-hidden="true" />
-                  Mello, live on iOS
-                </a>
-                <a href="#permit-miner" className="live-tag is-permit">
-                  <span className="live-dot" aria-hidden="true" />
-                  Permit Miner, live in Utah
-                </a>
+          <div className="about-grid">
+            <h2 className="about-title">
+              Software engineer building web and mobile products end to end.
+            </h2>
+            <DotPortrait ref={portraitRef} className="about-portrait" />
+            <div className="about-copy">
+              <p>
+                I'm finishing a Software Development certificate at Dixie
+                Technical College and running two products of my own. Both are
+                closed source and built solo.
               </p>
-              <div className="hero-actions">
-                <a href="#mello" className="pill">
-                  See the work
-                </a>
-                <p className="hero-links">
-                  <a href={`mailto:${EMAIL}`}>{EMAIL}</a>
-                  <ExternalLink href={GITHUB_URL}>GitHub</ExternalLink>
-                  <ExternalLink href={LINKEDIN_URL}>LinkedIn</ExternalLink>
-                </p>
-              </div>
+              <p>
+                I speak English, Spanish, and Italian. When I'm not shipping, I
+                bake.
+              </p>
             </div>
           </div>
+          <div className="hero-foot">
+            <p className="icon-links">
+              <a
+                href={`mailto:${EMAIL}`}
+                className="icon-link"
+                aria-label="Email Daniel"
+              >
+                <MailIcon />
+              </a>
+              <ExternalLink
+                href={GITHUB_URL}
+                className="icon-link"
+                aria-label="GitHub"
+              >
+                <GitHubIcon />
+              </ExternalLink>
+              <ExternalLink
+                href={LINKEDIN_URL}
+                className="icon-link"
+                aria-label="LinkedIn"
+              >
+                <LinkedInIcon />
+              </ExternalLink>
+            </p>
+          </div>
+          <ul className="stack" aria-label="Stack">
+            {stack.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
         </section>
 
         <section
@@ -1013,37 +1221,13 @@ const Portfolio = () => {
           </ul>
         </section>
 
-        <section
-          className="about"
-          id="about"
-          data-reveal=""
-          aria-labelledby="about-title"
-        >
-          <p className="eyebrow">About</p>
-          <div className="about-grid">
-            <h2 id="about-title" className="about-title">
-              From the database schema to the App Store listing, I do the whole
-              thing.
-            </h2>
-            <DotPortrait ref={portraitRef} className="about-portrait" />
-            <div className="about-copy">
-              <p>
-                I'm finishing a Software Development certificate at Dixie
-                Technical College and running two products of my own. Both are
-                closed source and built solo.
-              </p>
-              <p>
-                I speak English, Spanish, and Italian. When I'm not shipping, I
-                bake.
-              </p>
-            </div>
-          </div>
-          <ul className="stack" aria-label="Stack">
-            {stack.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </section>
+        {/* Decorative: the name is the page h1 at the top */}
+        <div className="wordmark" data-reveal="" aria-hidden="true">
+          <p className="display wordmark-name">
+            <span className="line">Daniel</span>
+            <span className="line">Castillo</span>
+          </p>
+        </div>
 
         <section
           className="contact"

@@ -1,6 +1,10 @@
 :root {
   color-scheme: dark;
   --navy: #1a1433;
+  /* The decorative name near the foot of the page sits barely above the
+     background, about 1.2:1, on purpose: it is aria-hidden and repeats the
+     h1, so it carries no information and is exempt from contrast minimums */
+  --wordmark: #2a2250;
   --text: #eef1f7;
   --muted: #a7b0c2;
   --line: rgba(238, 241, 247, 0.16);
@@ -178,6 +182,17 @@ a:focus-visible,
   padding: var(--space-4) var(--page-inline);
   background: color-mix(in srgb, var(--navy) 94%, transparent);
   color: var(--text);
+  transition: transform 0.25s ease;
+}
+
+/* Tucked away while scrolling down; it stays put while keyboard focus is
+   inside it, so a tabbing visitor never loses the link they are on */
+.top.is-hidden {
+  transform: translateY(-100%);
+}
+
+.top.is-hidden:focus-within {
+  transform: none;
 }
 
 .top nav {
@@ -202,15 +217,16 @@ a:focus-visible,
   }
 }
 
-/* Hero */
+/* Name wordmark, decorative, near the foot of the page */
 
 /* The name is fitted to Bricolage Grotesque; a wider fallback font (before
    the web font loads, or when it is blocked) would push the page sideways.
    Clipping at the padding edge still leaves the L's overhang its gutter. */
-.hero {
+.wordmark {
   container-type: inline-size;
   overflow-x: clip;
-  padding: 5.5rem var(--page-inline) var(--space-section);
+  padding: var(--space-section) var(--gutter) 0;
+  color: var(--wordmark);
 }
 
 /* Both words share one font-size, so their caps are the same height, and
@@ -222,141 +238,68 @@ a:focus-visible,
    is dropped on CASTILLO because on the condensed cut it nearly closes the
    gap between the two L's. The axis is set directly because Chromium rounds
    font-stretch to a coarser step, which leaves CASTILLO short. */
-.hero-name {
+.wordmark-name {
   --name-width-em: 3.028;
   font-size: calc(100cqi / var(--name-width-em));
   font-variation-settings: "opsz" 96;
 }
 
-.hero-name .line + .line {
+.wordmark-name .line + .line {
   letter-spacing: 0;
   font-variation-settings:
     "opsz" 96,
     "wdth" 77.59;
 }
 
-/* One entrance: each line of the name rises out of its own mask */
-/* Tracking is restated here because an em value set on the h1 resolves
-   against the h1's own size and would be inherited as a fixed length.
-   A 0.74 line box is the tightest that still keeps every cap, including
-   the overshoot of C, S and O, 0.026em inside the rise mask, so the two
-   words read as one block. The mask clips only vertically: the foot of
-   the final L overhangs the advance width and would be cut sideways. */
-.hero-name .line {
+/* Tracking is restated here because an em value set on the parent resolves
+   against the parent's own size and would be inherited as a fixed length.
+   A 0.74 line box keeps every cap, including the overshoot of C, S and O,
+   inside its line, so the two words read as one block. Each line is only
+   as wide as its word, which is what the width constants measure. */
+.wordmark-name .line {
   display: block;
-  overflow-y: clip;
+  width: fit-content;
   line-height: 0.74;
   letter-spacing: -0.025em;
 }
 
-.hero-name .line > span {
-  display: block;
-  width: fit-content;
-  animation: rise 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-}
+/* Hero: the about block opens the page */
 
-.hero-name .line + .line > span {
-  animation-delay: 0.12s;
-}
-
-@keyframes rise {
-  from {
-    transform: translateY(105%);
-  }
-}
-
+/* The contact icons close the top block, centered under a rule like the
+   section eyebrows */
 .hero-foot {
-  display: grid;
-  gap: var(--space-5) var(--space-7);
-  margin-top: var(--space-5);
-}
-
-/* Wide screens: the tagline and the actions share one row under the name,
-   so the block spans the same width as the name above it */
-@media (min-width: 60rem) {
-  .hero-foot {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: end;
-  }
-}
-
-.hero-line {
-  max-width: 34ch;
-  text-wrap: balance;
-  font-size: var(--step-2);
-  font-weight: 500;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
-}
-
-.live-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-3);
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4) var(--space-6);
+  margin-top: clamp(2rem, 4vw, 3rem);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--line);
 }
 
-.live-tag {
-  display: inline-flex;
-  align-items: center;
+.icon-links {
+  display: flex;
   gap: var(--space-2);
-  padding: 0.35rem 0.85rem;
+}
+
+/* 44px targets around 22px icons */
+.icon-link {
+  display: inline-grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--line);
   border-radius: var(--radius-pill);
-  color: var(--navy);
-  font-size: var(--step--1);
-  font-weight: 600;
-  text-decoration: none;
-  transition: transform 0.15s ease;
+  color: var(--text);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 }
 
-.live-tag:hover {
-  transform: translateY(-2px);
-}
-
-.live-tag.is-mello {
-  background: var(--pink);
-}
-
-.live-tag.is-permit {
-  background: var(--cyan);
-}
-
-.live-dot {
-  width: 0.45rem;
-  height: 0.45rem;
-  border-radius: 50%;
-  background: var(--navy);
-}
-
-.hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-5) var(--space-6);
-  margin-top: var(--space-6);
-}
-
-.hero-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2) var(--space-5);
-  font-weight: 500;
-}
-
-.hero-links a {
-  text-decoration-color: var(--line);
-  text-decoration-thickness: 2px;
-  text-underline-offset: 0.25em;
-}
-
-.hero-links a:hover {
-  text-decoration-color: currentColor;
-}
-
-@media (max-width: 40rem) {
-  /* The address gets its own line so the profile links stay together */
-  .hero-links a:first-child {
-    flex-basis: 100%;
-  }
+.icon-link:hover {
+  border-color: currentColor;
+  background-color: rgba(238, 241, 247, 0.08);
 }
 
 /* Product bands: navy like the rest of the page, told apart by a glow in
@@ -825,10 +768,16 @@ a:focus-visible,
   }
 }
 
-/* About */
+/* About, which is also the top of the page */
 
 .about {
-  padding: var(--space-section) var(--page-inline);
+  padding: 5.5rem var(--page-inline) var(--space-section);
+}
+
+/* The page h1 keeps the eyebrow's shape but the full text color, so the
+   name reads as the name and not a muted section label */
+.about-name {
+  color: var(--text);
 }
 
 .about-title {
@@ -1011,17 +960,14 @@ a:focus-visible,
 
   .pill,
   .browser,
-  .live-tag,
   .phones img,
   .more-name,
   .contact-email,
   .arrow,
+  .top,
+  .icon-link,
   [data-reveal] {
     transition: none;
-  }
-
-  .hero-name .line > span {
-    animation: none;
   }
 
   /* Covers the preference changing after the page has loaded */
