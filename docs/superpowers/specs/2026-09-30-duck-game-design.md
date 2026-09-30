@@ -82,8 +82,8 @@ phones and tablets there is no toggle and no game code is downloaded.
 - **Rendering.** A single fixed, full-viewport canvas with
   `pointer-events: none` and `aria-hidden="true"` draws the duck, blueprints
   and effects in page coordinates offset by scroll. Colors come from CSS
-  custom properties: duck body in `--text` with a `--rose` beak and feet,
-  blueprints in `--teal`.
+  custom properties: duck body in `--text` with a `--pink` beak and feet,
+  blueprints in `--cyan`.
 - **Platforms.** On start and on resize, scroll or layout change
   (ResizeObserver on `main`), the game reads `getBoundingClientRect()` of the
   platform elements, found with one selector list, and stores their top
