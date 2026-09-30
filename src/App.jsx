@@ -1,4 +1,13 @@
-import { useEffect, useImperativeHandle, useRef, useState } from "react";
+import {
+  Suspense,
+  lazy,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import {
   APP_STORE_URL,
   EMAIL,
@@ -985,7 +994,35 @@ const useRevealOnScroll = (rootRef) => {
   }, [rootRef]);
 };
 
+// Loaded on the first click, so visitors who never play download nothing.
+const DuckGame = lazy(() => import("./game/DuckGame.jsx"));
+
+// The game needs a keyboard, a precise pointer and room to play.
+const GAME_QUERY = "(pointer: fine) and (hover: hover) and (min-width: 64rem)";
+
+const useMediaQuery = (query) => {
+  const subscribe = useCallback(
+    (onChange) => {
+      const list = window.matchMedia(query);
+      list.addEventListener("change", onChange);
+      return () => list.removeEventListener("change", onChange);
+    },
+    [query],
+  );
+  return useSyncExternalStore(subscribe, () => window.matchMedia(query).matches);
+};
+
 const Portfolio = () => {
+  const canPlay = useMediaQuery(GAME_QUERY);
+  const [playing, setPlaying] = useState(false);
+  const toggleRef = useRef(null);
+  // Losing the desktop gate mid-game ends the game instead of pausing it, so
+  // it does not reappear on its own when the window grows again.
+  if (playing && !canPlay) setPlaying(false);
+  const exitGame = useCallback(() => {
+    setPlaying(false);
+    toggleRef.current?.focus();
+  }, []);
   const mainRef = useRef(null);
   const portraitRef = useRef(null);
   const headerRef = useRef(null);
@@ -1007,6 +1044,18 @@ const Portfolio = () => {
         ref={headerRef}
         className={headerHidden ? "top is-hidden" : "top"}
       >
+        {canPlay && (
+          <button
+            ref={toggleRef}
+            type="button"
+            className="game-toggle"
+            aria-pressed={playing}
+            onClick={() => (playing ? exitGame() : setPlaying(true))}
+          >
+            <span className="game-toggle-dot" aria-hidden="true" />
+            Game mode
+          </button>
+        )}
         <nav aria-label="Primary">
           <a href="#mello">Mello</a>
           <a href="#permit-miner">Permit Miner</a>
@@ -1250,6 +1299,11 @@ const Portfolio = () => {
           <ExternalLink href={LINKEDIN_URL}>LinkedIn</ExternalLink>
         </p>
       </footer>
+      {playing && (
+        <Suspense fallback={null}>
+          <DuckGame onExit={exitGame} />
+        </Suspense>
+      )}
     </>
   );
 };
