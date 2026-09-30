@@ -256,9 +256,11 @@ const DuckGame = ({ onExit }) => {
       window.__duckGame = {
         state: () => ({ duck, platforms, blueprints }),
         reachable: () => {
+          // Read the start again: a resize moves it away from the first one.
+          const here = readStart();
           const startPlatform = platforms.find(
             (p) =>
-              Math.abs(p.top - start.y) < 1 && start.x >= p.left && start.x <= p.right,
+              Math.abs(p.top - here.y) < 1 && here.x >= p.left && here.x <= p.right,
           );
           return reachableBlueprints(platforms, startPlatform, blueprints);
         },

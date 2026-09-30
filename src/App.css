@@ -1078,6 +1078,13 @@ a:focus-visible,
   gap: var(--space-3);
 }
 
+/* .pill was built for links; a button needs the page font and no border */
+.game-win-actions .pill {
+  border: 0;
+  font: inherit;
+  font-weight: 600;
+}
+
 .game-win-secondary {
   padding: 0.9rem 1.25rem;
   border: 1px solid var(--line);
