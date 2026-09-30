@@ -213,21 +213,26 @@ a:focus-visible,
   padding: 5.5rem var(--page-inline) var(--space-section);
 }
 
-/* Each word is sized so its width equals the content width. The constants
-   are each word's measured width in em (Bricolage Grotesque 800, -0.025em
-   tracking, opsz pinned at 96 so the ratio holds at every size). */
+/* Both words share one font-size, so their caps are the same height, and
+   that size makes DANIEL exactly the content width. CASTILLO is condensed
+   on the width axis until it measures the same. Measured in Chromium with
+   Bricolage Grotesque 800 and opsz pinned at 96 so the ratios hold at every
+   size: DANIEL at wdth 100 with -0.025em tracking is 3.028em wide, CASTILLO
+   at wdth 77.59 with no tracking is 3.0279em. The page's negative tracking
+   is dropped on CASTILLO because on the condensed cut it nearly closes the
+   gap between the two L's. The axis is set directly because Chromium rounds
+   font-stretch to a coarser step, which leaves CASTILLO short. */
 .hero-name {
-  --name-daniel-em: 3.0281;
-  --name-castillo-em: 3.9341;
+  --name-width-em: 3.028;
+  font-size: calc(100cqi / var(--name-width-em));
   font-variation-settings: "opsz" 96;
 }
 
-.hero-name .line:first-child {
-  font-size: calc(100cqi / var(--name-daniel-em));
-}
-
 .hero-name .line + .line {
-  font-size: calc(100cqi / var(--name-castillo-em));
+  letter-spacing: 0;
+  font-variation-settings:
+    "opsz" 96,
+    "wdth" 77.59;
 }
 
 /* One entrance: each line of the name rises out of its own mask */
