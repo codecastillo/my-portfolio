@@ -1,15 +1,55 @@
 :root {
-  --navy: #0d0b1f;
-  --navy-soft: #16132f;
-  --text: #f1eefc;
-  --muted: #a39fc4;
-  --pink: #ff2a6d;
-  --cyan: #05d9e8;
-  --purple: #9d4edd;
+  color-scheme: dark;
+  --navy: #0b1120;
+  --text: #eef1f7;
+  --muted: #a7b0c2;
+  --line: rgba(238, 241, 247, 0.16);
+
+  /* Each product owns one accent: a light tint for its tag and button, and
+     a deep shade that only ever appears as its section's glow */
+  --rose: #ec8fa8;
+  --rose-deep: #8c2f52;
+  --teal: #5ccfc3;
+  --teal-deep: #0d6b6a;
 
   --display: "Bricolage Grotesque", "Arial Black", sans-serif;
   --font: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Type scale. Nothing on the page is set below --step--1 except stat
+     labels, which may drop to 14px on phones. */
+  --step-label: clamp(0.875rem, 0.82rem + 0.25vw, 0.9375rem);
+  --step--1: 0.9375rem;
+  --step-0: 1.0625rem;
+  --step-1: clamp(1.125rem, 1rem + 0.6vw, 1.3125rem);
+  --step-2: clamp(1.5rem, 1.05rem + 1.9vw, 2.5rem);
+  --step-3: clamp(2rem, 1.4rem + 2.6vw, 3.75rem);
+  --step-4: clamp(2.5rem, 1.5rem + 4.2vw, 4.5rem);
+  /* Display sizes follow the width of their section's content (cqi), so
+     they stop growing once the content reaches --content-max */
+  --step-5: clamp(4rem, 12cqi, 10rem);
+  /* The address is about 10.5em wide, so 8.5cqi keeps it on one line
+     inside the content box at every width */
+  --step-fill: clamp(1.25rem, 8.5cqi, 6rem);
+
+  /* Spacing scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-section: clamp(4rem, 9vw, 7rem);
   --gutter: clamp(1.25rem, 4vw, 3.5rem);
+
+  /* Every full-width block pads its content into one centered column;
+     backgrounds and glows still run to the screen edges */
+  --content-max: 78rem;
+  --page-inline: max(var(--gutter), (100% - var(--content-max)) / 2);
+
+  --radius: 1rem;
+  --radius-phone: 2rem;
+  --radius-pill: 999px;
 }
 
 *,
@@ -28,7 +68,7 @@ body {
   background: var(--navy);
   color: var(--text);
   font-family: var(--font);
-  font-size: 1.0625rem;
+  font-size: var(--step-0);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
 }
@@ -60,14 +100,15 @@ button {
   cursor: pointer;
 }
 
-a:focus-visible {
-  outline: 3px solid currentColor;
+/* A fixed light ring: currentColor would vanish around navy-text buttons */
+a:focus-visible,
+.phones:focus-visible {
+  outline: 3px solid var(--text);
   outline-offset: 4px;
-  border-radius: 4px;
 }
 
 ::selection {
-  background: var(--pink);
+  background: var(--rose);
   color: var(--navy);
 }
 
@@ -82,11 +123,11 @@ a:focus-visible {
   text-transform: uppercase;
 }
 
-/* Section labels share one voice across dark sections and color bands */
+/* Section labels share one voice across every section */
 
 .eyebrow,
 .band-label {
-  font-size: 0.8125rem;
+  font-size: var(--step--1);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -95,16 +136,34 @@ a:focus-visible {
 .eyebrow {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+  color: var(--muted);
 }
 
 .eyebrow::after {
   content: "";
   flex: 1;
   height: 2px;
-  background: currentColor;
-  opacity: 0.35;
+  background: var(--line);
+}
+
+/* Buttons take the section accent, and the page text color outside one */
+
+.pill {
+  display: inline-block;
+  padding: 0.9rem var(--space-5);
+  border-radius: var(--radius-pill);
+  background: var(--accent, var(--text));
+  color: var(--navy);
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  transition: transform 0.15s ease;
+}
+
+.pill:hover {
+  transform: translateY(-2px);
 }
 
 /* Top bar */
@@ -115,23 +174,16 @@ a:focus-visible {
   z-index: 10;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 1rem var(--gutter);
-  background: rgba(13, 11, 31, 0.94);
+  justify-content: flex-end;
+  padding: var(--space-4) var(--page-inline);
+  background: color-mix(in srgb, var(--navy) 94%, transparent);
   color: var(--text);
-}
-
-.top-name {
-  font-family: var(--display);
-  font-size: 1.25rem;
-  font-weight: 800;
-  text-decoration: none;
 }
 
 .top nav {
   display: flex;
   gap: clamp(1rem, 2.5vw, 2rem);
-  font-size: 0.9375rem;
+  font-size: var(--step--1);
   font-weight: 500;
 }
 
@@ -140,7 +192,6 @@ a:focus-visible {
 }
 
 .top nav a:hover {
-  color: var(--pink);
   text-decoration: underline;
   text-underline-offset: 0.25em;
 }
@@ -149,36 +200,53 @@ a:focus-visible {
   .top nav a:not(:last-child) {
     display: none;
   }
-
-  .hero {
-    min-height: 70svh;
-  }
 }
 
 /* Hero */
 
+/* The name is fitted to Bricolage Grotesque; a wider fallback font (before
+   the web font loads, or when it is blocked) would push the page sideways.
+   Clipping at the padding edge still leaves the L's overhang its gutter. */
 .hero {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  min-height: min(100vh, 60rem);
-  padding: 6rem var(--gutter) clamp(2rem, 5vw, 3.5rem);
+  container-type: inline-size;
+  overflow-x: clip;
+  padding: 5.5rem var(--page-inline) var(--space-section);
 }
 
-.hero .display {
-  font-size: clamp(4.5rem, 22.5vw, 26rem);
-  margin-left: -0.05em;
+/* Each word is sized so its width equals the content width. The constants
+   are each word's measured width in em (Bricolage Grotesque 800, -0.025em
+   tracking, opsz pinned at 96 so the ratio holds at every size). */
+.hero-name {
+  --name-daniel-em: 3.0281;
+  --name-castillo-em: 3.9341;
+  font-variation-settings: "opsz" 96;
+}
+
+.hero-name .line:first-child {
+  font-size: calc(100cqi / var(--name-daniel-em));
+}
+
+.hero-name .line + .line {
+  font-size: calc(100cqi / var(--name-castillo-em));
 }
 
 /* One entrance: each line of the name rises out of its own mask */
+/* Tracking is restated here because an em value set on the h1 resolves
+   against the h1's own size and would be inherited as a fixed length.
+   A 0.74 line box is the tightest that still keeps every cap, including
+   the overshoot of C, S and O, 0.026em inside the rise mask, so the two
+   words read as one block. The mask clips only vertically: the foot of
+   the final L overhangs the advance width and would be cut sideways. */
 .hero-name .line {
   display: block;
-  overflow: hidden;
-  padding-bottom: 0.04em;
+  overflow-y: clip;
+  line-height: 0.74;
+  letter-spacing: -0.025em;
 }
 
 .hero-name .line > span {
   display: block;
+  width: fit-content;
   animation: rise 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
@@ -192,21 +260,44 @@ a:focus-visible {
   }
 }
 
+.hero-foot {
+  display: grid;
+  gap: var(--space-5) var(--space-7);
+  margin-top: var(--space-5);
+}
+
+/* Wide screens: the tagline and the actions share one row under the name,
+   so the block spans the same width as the name above it */
+@media (min-width: 60rem) {
+  .hero-foot {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+  }
+}
+
+.hero-line {
+  max-width: 34ch;
+  text-wrap: balance;
+  font-size: var(--step-2);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
 .live-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.6rem;
-  margin-top: 1rem;
+  gap: var(--space-3);
 }
 
 .live-tag {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
   padding: 0.35rem 0.85rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   color: var(--navy);
-  font-size: 0.875rem;
+  font-size: var(--step--1);
   font-weight: 600;
   text-decoration: none;
   transition: transform 0.15s ease;
@@ -216,12 +307,12 @@ a:focus-visible {
   transform: translateY(-2px);
 }
 
-.live-tag.is-pink {
-  background: var(--pink);
+.live-tag.is-mello {
+  background: var(--rose);
 }
 
-.live-tag.is-cyan {
-  background: var(--cyan);
+.live-tag.is-permit {
+  background: var(--teal);
 }
 
 .live-dot {
@@ -231,37 +322,29 @@ a:focus-visible {
   background: var(--navy);
 }
 
-.hero-foot {
+.hero-actions {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1.5rem 3rem;
-  margin-top: clamp(1.5rem, 4vw, 3rem);
-  padding-top: 1.25rem;
-  border-top: 2px solid var(--pink);
-}
-
-.hero-line {
-  max-width: 26rem;
-  color: var(--cyan);
-  font-size: clamp(1.125rem, 1.8vw, 1.375rem);
-  line-height: 1.35;
+  align-items: center;
+  gap: var(--space-5) var(--space-6);
+  margin-top: var(--space-6);
 }
 
 .hero-links {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem 1.5rem;
+  gap: var(--space-2) var(--space-5);
   font-weight: 500;
 }
 
 .hero-links a {
-  text-decoration: none;
+  text-decoration-color: var(--line);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.25em;
 }
 
 .hero-links a:hover {
-  color: var(--pink);
+  text-decoration-color: currentColor;
 }
 
 @media (max-width: 40rem) {
@@ -271,14 +354,23 @@ a:focus-visible {
   }
 }
 
-/* Product bands */
+/* Product bands: navy like the rest of the page, told apart by a glow in
+   the product's deep accent behind its screens */
 
 .band {
+  container-type: inline-size;
   display: grid;
-  gap: clamp(2rem, 5vw, 4rem);
+  gap: clamp(2.5rem, 5vw, 4rem);
   overflow: hidden;
-  padding: clamp(4rem, 9vw, 7rem) var(--gutter);
-  color: var(--navy);
+  padding: var(--space-section) var(--page-inline);
+  border-top: 1px solid var(--line);
+  background:
+    radial-gradient(
+      min(60%, 50rem) 70% at calc(50% + min(22vw, 17.5rem)) 50%,
+      color-mix(in srgb, var(--glow) 50%, transparent),
+      transparent 72%
+    ),
+    var(--navy);
 }
 
 @media (min-width: 60rem) {
@@ -288,33 +380,61 @@ a:focus-visible {
   }
 }
 
-.band-pink {
-  background: var(--pink);
+@media (max-width: 59.99rem) {
+  /* Stacked, the screens sit below the copy, so the glow follows them */
+  .band {
+    background:
+      radial-gradient(
+        90% 45% at 50% 85%,
+        color-mix(in srgb, var(--glow) 50%, transparent),
+        transparent 72%
+      ),
+      var(--navy);
+  }
 }
 
-.band-cyan {
-  background: var(--cyan);
+.band-mello {
+  --accent: var(--rose);
+  --glow: var(--rose-deep);
+}
+
+.band-permit {
+  --accent: var(--teal);
+  --glow: var(--teal-deep);
 }
 
 .band-label {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--space-3);
+  color: var(--muted);
 }
 
 .band-label img {
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 22%;
-  box-shadow: 0 8px 20px -8px rgba(13, 11, 31, 0.6);
 }
 
+.band .display {
+  margin: var(--space-3) 0 var(--space-5) -0.04em;
+  font-size: var(--step-5);
+}
+
+.band-lede {
+  max-width: 30rem;
+  font-size: var(--step-1);
+  line-height: 1.4;
+}
+
+/* Each figure sizes to its value so "14 days" never breaks; a figure that
+   does not fit moves to the next row instead of overflowing */
 .facts {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
-  max-width: 32rem;
-  margin: 2rem 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) clamp(1rem, 3vw, 2.5rem);
+  max-width: 34rem;
+  margin: var(--space-7) 0 0;
 }
 
 /* column-reverse packs from the bottom; flex-end keeps every value on the
@@ -327,52 +447,58 @@ a:focus-visible {
 
 .facts dd {
   margin: 0;
+  white-space: nowrap;
   font-family: var(--display);
-  font-size: clamp(1.75rem, 3.4vw, 2.75rem);
+  font-size: var(--step-3);
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.03em;
 }
 
+/* Labels wrap inside the column their value sets instead of widening it */
 .facts dt {
-  margin-top: 0.35rem;
-  font-size: 0.8125rem;
+  contain: inline-size;
+  margin-top: var(--space-2);
+  color: var(--muted);
+  font-size: var(--step-label);
   font-weight: 500;
-  opacity: 0.8;
-}
-
-.band .display {
-  margin: 0.75rem 0 1.5rem -0.04em;
-  font-size: clamp(4rem, 12vw, 10rem);
-}
-
-.band-lede {
-  max-width: 30rem;
-  font-size: clamp(1.125rem, 1.7vw, 1.3125rem);
-  line-height: 1.4;
+  line-height: 1.35;
 }
 
 .built {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem 1.5rem;
-  max-width: 32rem;
-  margin-top: 2rem;
-  font-size: 0.9375rem;
-  font-weight: 500;
+  gap: var(--space-3) var(--space-5);
+  max-width: 34rem;
+  margin-top: var(--space-6);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--line);
+  font-size: var(--step--1);
+  line-height: 1.4;
 }
 
 .built li {
-  padding-top: 0.6rem;
-  border-top: 2px solid var(--navy);
+  display: flex;
+  gap: var(--space-3);
+}
+
+/* Centered on the first line of a wrapped item */
+.built li::before {
+  content: "";
+  flex: none;
+  width: 0.4rem;
+  height: 0.4rem;
+  margin-top: 0.5em;
+  border-radius: 1px;
+  background: var(--accent);
 }
 
 .band-links {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 1rem 1.5rem;
-  margin-top: 2.25rem;
+  gap: var(--space-4) var(--space-5);
+  margin-top: var(--space-6);
   font-weight: 600;
 }
 
@@ -381,119 +507,134 @@ a:focus-visible {
   text-underline-offset: 0.2em;
 }
 
-.pill {
-  display: inline-block;
-  padding: 0.9rem 1.5rem;
-  border-radius: 999px;
-  background: var(--navy);
-  color: var(--text);
-  text-decoration: none;
-  transition: transform 0.15s ease;
-}
-
-.pill:hover {
-  transform: translateY(-2px);
-}
-
-/* Mello phones, overlapping and running off the band */
+/* Mello phones: one overlapping group on wide screens */
 
 .phones {
   display: flex;
   justify-content: center;
-  gap: 0;
+  align-items: center;
   min-width: 0;
 }
 
 .phones img {
-  width: 34%;
-  max-width: 15rem;
-  border: 6px solid var(--navy);
-  border-radius: 2rem;
-  box-shadow: 0 30px 60px -20px rgba(13, 11, 31, 0.6);
-}
-
-.phones img {
+  width: 38%;
+  max-width: 18rem;
+  border: 6px solid #03060d;
+  border-radius: var(--radius-phone);
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.7);
   transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.phones img:nth-child(1) {
-  transform: rotate(-6deg) translate(12%, 6%);
+/* Wide screens: the side phones tuck behind the middle one */
+@media (min-width: 40.0625rem) {
+  .phones img + img {
+    margin-left: -7%;
+  }
+
+  .phones img:nth-child(odd) {
+    transform: translateY(6%) scale(0.92);
+  }
+
+  .phones img:nth-child(2) {
+    position: relative;
+    z-index: 1;
+  }
 }
 
-.phones img:nth-child(2) {
-  position: relative;
-  z-index: 1;
-  transform: translateY(-4%);
+@media (min-width: 40.0625rem) and (hover: hover) {
+  .band-mello:hover .phones img:nth-child(1) {
+    transform: translate(-5%, 6%) scale(0.92);
+  }
+
+  .band-mello:hover .phones img:nth-child(3) {
+    transform: translate(5%, 6%) scale(0.92);
+  }
 }
 
-.phones img:nth-child(3) {
-  transform: rotate(6deg) translate(-12%, 6%);
+/* On phones the group becomes a swipeable row at full size instead of
+   shrinking to thumbnails; it runs to the screen edges */
+@media (max-width: 40rem) {
+  .phones {
+    justify-content: flex-start;
+    gap: var(--space-4);
+    margin-inline: calc(-1 * var(--gutter));
+    padding: var(--space-2) var(--gutter) var(--space-5);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--gutter);
+    scrollbar-width: none;
+  }
+
+  .phones img {
+    flex: none;
+    width: 68%;
+    max-width: none;
+    scroll-snap-align: start;
+  }
 }
 
-.band-pink:hover .phones img:nth-child(1) {
-  transform: rotate(-9deg) translate(2%, 4%);
-}
+/* Permit Miner screenshot, whole, inside a simple browser frame */
 
-.band-pink:hover .phones img:nth-child(2) {
-  transform: translateY(-8%);
-}
-
-.band-pink:hover .phones img:nth-child(3) {
-  transform: rotate(9deg) translate(-2%, 4%);
-}
-
-/* Permit Miner screenshot, bleeding off the right edge */
-
-.screen {
+/* Capped near the Mello phone group's width so both products weigh the
+   same on wide screens */
+.browser {
   display: block;
+  justify-self: center;
+  width: 100%;
+  max-width: 40rem;
   overflow: hidden;
-  border: 6px solid var(--navy);
-  border-radius: 1rem;
-  box-shadow: 0 30px 60px -20px rgba(13, 11, 31, 0.5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #03060d;
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.7);
+  text-decoration: none;
   transition: transform 0.2s ease;
 }
 
-.screen:hover {
+.browser:hover {
   transform: translateY(-4px);
 }
 
-@media (min-width: 60rem) {
-  .screen {
-    width: 125%;
-    border-right: 0;
-    border-radius: 1rem 0 0 1rem;
-  }
+.browser-bar {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+}
+
+.browser-bar span {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
+  background: rgba(238, 241, 247, 0.28);
 }
 
 /* Also built */
 
 .more {
-  padding: clamp(4rem, 9vw, 7rem) var(--gutter) 0;
+  padding: var(--space-section) var(--page-inline) 0;
+  border-top: 1px solid var(--line);
 }
 
 .more .eyebrow {
   margin-bottom: 0;
-  color: var(--purple);
-}
-
-/* The eyebrow rule doubles as the first row's top border */
-.more .eyebrow::after {
-  opacity: 0.4;
 }
 
 .more li {
-  border-bottom: 2px solid rgba(157, 78, 221, 0.4);
+  border-bottom: 1px solid var(--line);
 }
 
 .more-row {
   display: grid;
-  gap: 0.25rem 2rem;
-  padding-block: 1.25rem;
+  gap: var(--space-1) var(--space-6);
+  padding-block: var(--space-5);
   text-decoration: none;
 }
 
-/* Fixed outer columns keep every description on the same left edge */
-@media (min-width: 48rem) {
+/* Fixed outer columns keep every description on the same left edge. Below
+   64rem the name column is too narrow for one-word names like Esticount,
+   so rows stack instead */
+@media (min-width: 64rem) {
   .more-row {
     grid-template-columns: minmax(0, 1fr) minmax(0, 24rem) 7rem;
     align-items: center;
@@ -506,12 +647,16 @@ a:focus-visible {
 
 .more-name {
   font-family: var(--display);
-  font-size: clamp(2rem, 5vw, 3.75rem);
+  font-size: var(--step-3);
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.035em;
   text-transform: uppercase;
-  transition: color 0.15s ease;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.12em;
+  transition: text-decoration-color 0.15s ease;
 }
 
 .more-description {
@@ -522,7 +667,6 @@ a:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  color: var(--cyan);
   font-weight: 500;
 }
 
@@ -531,7 +675,7 @@ a:focus-visible {
 }
 
 .more-row:hover .more-name {
-  color: var(--pink);
+  text-decoration-color: currentColor;
 }
 
 .more-row:hover .arrow {
@@ -541,17 +685,13 @@ a:focus-visible {
 /* About */
 
 .about {
-  padding: clamp(4rem, 9vw, 7rem) var(--gutter);
-}
-
-.about .eyebrow {
-  color: var(--purple);
+  padding: var(--space-section) var(--page-inline);
 }
 
 .about-title {
   max-width: 18ch;
   font-family: var(--display);
-  font-size: clamp(2.25rem, 5.5vw, 4.5rem);
+  font-size: var(--step-4);
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.035em;
@@ -559,61 +699,72 @@ a:focus-visible {
 
 .about-grid {
   display: grid;
-  gap: 2rem clamp(2rem, 6vw, 6rem);
+  gap: var(--space-6) clamp(2rem, 6vw, 6rem);
 }
 
 @media (min-width: 60rem) {
   .about-grid {
     grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
-    align-items: end;
+    align-items: start;
   }
 }
 
 .about-copy {
   display: grid;
-  gap: 1rem;
+  gap: var(--space-4);
   color: var(--muted);
-  font-size: 1.125rem;
+  font-size: var(--step-1);
 }
 
 .stack {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.6rem;
+  gap: var(--space-3);
   margin-top: clamp(2.5rem, 5vw, 4rem);
 }
 
 .stack li {
   padding: 0.4rem 0.9rem;
-  border: 2px solid rgba(5, 217, 232, 0.45);
-  border-radius: 999px;
-  color: var(--cyan);
-  font-size: 0.9375rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  font-size: var(--step--1);
   font-weight: 500;
 }
 
 /* Contact */
 
 .contact {
-  padding: clamp(4rem, 9vw, 7rem) var(--gutter);
-  background: var(--purple);
-  color: var(--navy);
+  container-type: inline-size;
+  padding: var(--space-section) var(--page-inline);
+  text-align: center;
+}
+
+/* Centered label with a rule on each side */
+.contact .eyebrow::before {
+  content: "";
+  flex: 1;
+  height: 2px;
+  background: var(--line);
 }
 
 .contact-email {
   display: inline-block;
-  margin-top: 0.75rem;
+  margin-top: var(--space-3);
   font-family: var(--display);
-  font-size: clamp(1.25rem, 6.6vw, 6.5rem);
+  font-size: var(--step-fill);
   font-weight: 800;
-  line-height: 1;
+  line-height: 1.1;
   letter-spacing: -0.04em;
-  text-decoration: none;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.14em;
   overflow-wrap: anywhere;
+  transition: text-decoration-color 0.15s ease;
 }
 
 .contact-email:hover {
-  color: var(--text);
+  text-decoration-color: var(--rose);
 }
 
 /* Footer */
@@ -622,10 +773,11 @@ a:focus-visible {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: 0.75rem 2rem;
-  padding: 1.5rem var(--gutter) 2rem;
+  gap: var(--space-3) var(--space-6);
+  padding: var(--space-5) var(--page-inline) var(--space-6);
+  border-top: 1px solid var(--line);
   color: var(--muted);
-  font-size: 0.875rem;
+  font-size: var(--step--1);
 }
 
 .footer p:last-child {
@@ -638,7 +790,21 @@ a:focus-visible {
 }
 
 .footer a:hover {
-  color: var(--pink);
+  color: var(--text);
+}
+
+/* Scroll reveal: the script only marks a section pending once an observer
+   is watching it */
+
+[data-reveal] {
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+[data-reveal="pending"] {
+  opacity: 0;
+  transform: translateY(var(--space-6));
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -647,13 +813,31 @@ a:focus-visible {
   }
 
   .pill,
-  .screen,
+  .browser,
   .live-tag,
-  .phones img {
+  .phones img,
+  .more-name,
+  .contact-email,
+  .arrow,
+  [data-reveal] {
     transition: none;
   }
 
   .hero-name .line > span {
     animation: none;
+  }
+
+  /* Covers the preference changing after the page has loaded */
+  [data-reveal="pending"] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Sections the observer has not reached yet would otherwise print blank */
+@media print {
+  [data-reveal="pending"] {
+    opacity: 1;
+    transform: none;
   }
 }
