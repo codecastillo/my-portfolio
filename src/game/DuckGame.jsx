@@ -90,7 +90,6 @@ const DuckGame = ({ onExit }) => {
 
     const start = readStart();
     let duck = createDuck(start.x, start.y);
-    let lastSafe = { x: duck.x, y: duck.y };
     let platforms = readPlatforms();
     let blueprints = readBlueprints();
     let palette = readPalette();
@@ -181,10 +180,12 @@ const DuckGame = ({ onExit }) => {
       for (let i = 0; i < timing.steps; i++) {
         duck = stepDuck(duck, input, platforms, bounds);
         input.jumpPressed = false;
-        if (duck.onGround) lastSafe = { x: duck.x, y: duck.y };
       }
+      // The page only lets the duck travel down, so falling off the bottom
+      // loops back to the start; a missed blueprint can always be retried.
       if (duck.y > root.scrollHeight + RESPAWN_MARGIN) {
-        duck = createDuck(lastSafe.x, lastSafe.y);
+        const restart = readStart();
+        duck = createDuck(restart.x, restart.y);
       }
       const result = collectTouched(blueprints, duck);
       if (result.newly > 0) {
@@ -204,7 +205,12 @@ const DuckGame = ({ onExit }) => {
 
     const onKeyDown = (event) => {
       // With the win card open, keys belong to its buttons.
-      if (dialogRef.current?.open) return;
+      if (dialogRef.current?.open) {
+        // A Space still held from the last jump auto-repeats onto the card's
+        // focused button and would copy the email unasked.
+        if (event.repeat) event.preventDefault();
+        return;
+      }
       if (event.code === "Escape") {
         onExit();
         return;
@@ -268,7 +274,12 @@ const DuckGame = ({ onExit }) => {
           const blueprint = blueprints[index];
           const anchorTop = blueprint.y + BLUEPRINT_LIFT;
           duck = createDuck(blueprint.x - PLACE_OFFSET, anchorTop);
-          lastSafe = { x: duck.x, y: duck.y };
+        },
+        dropBelowPage: () => {
+          duck = {
+            ...createDuck(duck.x, root.scrollHeight + RESPAWN_MARGIN + 1),
+            onGround: false,
+          };
         },
       };
     }

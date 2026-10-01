@@ -63,8 +63,9 @@ phones and tablets there is no toggle and no game code is downloaded.
    divider lines. The duck lands on them from above and passes through them
    from below (one-way platforms).
 4. The page scrolls to keep the duck in the middle third of the viewport. If
-   the duck falls below the bottom of the page it respawns at the last spot
-   where it stood on a platform.
+   the duck falls below the bottom of the page it returns to its starting
+   spot at the top, keeping every blueprint it has collected, so a missed
+   blueprint can always be retried.
 5. Touching a blueprint collects it with a short sparkle, increments the
    counter and announces "Blueprint 2 of 5" through a polite live region.
 6. At 5 of 5 the win card appears centered over the page: "Hired?", the

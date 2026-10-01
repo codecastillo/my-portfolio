@@ -1050,7 +1050,16 @@ const Portfolio = () => {
             type="button"
             className="game-toggle"
             aria-pressed={playing}
-            onClick={() => (playing ? exitGame() : setPlaying(true))}
+            onClick={(event) => {
+              if (playing) {
+                exitGame();
+                return;
+              }
+              // Blur now, not when the game finishes loading: a Space pressed
+              // while it downloads would otherwise press this button again.
+              event.currentTarget.blur();
+              setPlaying(true);
+            }}
           >
             <span className="game-toggle-dot" aria-hidden="true" />
             Game mode
