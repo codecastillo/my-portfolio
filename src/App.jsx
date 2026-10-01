@@ -95,6 +95,56 @@ const LinkedInIcon = () => (
   </Icon>
 );
 
+// A page with a folded corner and text lines: the resume.
+const ResumeIcon = () => (
+  <Icon>
+    <path
+      d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M14 3v5h5M9 13h6M9 17h6"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Icon>
+);
+
+const RESUME_URL = "/Daniel-Castillo-Resume.pdf";
+
+// Email, GitHub, LinkedIn and the resume as round icon buttons, used in the
+// About block and the footer.
+const ContactLinks = () => (
+  <p className="icon-links">
+    <a href={`mailto:${EMAIL}`} className="icon-link" aria-label="Email Daniel">
+      <MailIcon />
+    </a>
+    <ExternalLink href={GITHUB_URL} className="icon-link" aria-label="GitHub">
+      <GitHubIcon />
+    </ExternalLink>
+    <ExternalLink
+      href={LINKEDIN_URL}
+      className="icon-link"
+      aria-label="LinkedIn"
+    >
+      <LinkedInIcon />
+    </ExternalLink>
+    <ExternalLink
+      href={RESUME_URL}
+      className="icon-link"
+      aria-label="Resume (PDF)"
+    >
+      <ResumeIcon />
+    </ExternalLink>
+  </p>
+);
+
 // Mello figures come from the App Store listing; Permit Miner figures come
 // from its live pricing and homepage.
 const melloFacts = [
@@ -1102,29 +1152,7 @@ const Portfolio = () => {
             </div>
           </div>
           <div className="hero-foot">
-            <p className="icon-links">
-              <a
-                href={`mailto:${EMAIL}`}
-                className="icon-link"
-                aria-label="Email Daniel"
-              >
-                <MailIcon />
-              </a>
-              <ExternalLink
-                href={GITHUB_URL}
-                className="icon-link"
-                aria-label="GitHub"
-              >
-                <GitHubIcon />
-              </ExternalLink>
-              <ExternalLink
-                href={LINKEDIN_URL}
-                className="icon-link"
-                aria-label="LinkedIn"
-              >
-                <LinkedInIcon />
-              </ExternalLink>
-            </p>
+            <ContactLinks />
           </div>
           <ul className="stack" aria-label="Stack">
             {stack.map((item) => (
@@ -1302,11 +1330,8 @@ const Portfolio = () => {
       </main>
 
       <footer className="footer">
+        <ContactLinks />
         <p>&copy; {new Date().getFullYear()} Daniel Castillo</p>
-        <p>
-          <ExternalLink href={GITHUB_URL}>GitHub</ExternalLink>
-          <ExternalLink href={LINKEDIN_URL}>LinkedIn</ExternalLink>
-        </p>
       </footer>
       {playing && (
         <Suspense fallback={null}>

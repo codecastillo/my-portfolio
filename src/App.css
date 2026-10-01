@@ -928,19 +928,6 @@ a:focus-visible,
   font-size: var(--step--1);
 }
 
-.footer p:last-child {
-  display: flex;
-  gap: 1.25rem;
-}
-
-.footer a {
-  text-decoration: none;
-}
-
-.footer a:hover {
-  color: var(--text);
-}
-
 /* Scroll reveal: the script only marks a section pending once an observer
    is watching it */
 
