@@ -7,7 +7,6 @@ import {
   cameraTarget,
   collectTouched,
   reachableBlueprints,
-  toBlueprints,
   toPlatforms,
 } from "./world.js";
 
@@ -27,21 +26,8 @@ test("platforms move into page coordinates, drop slivers and sort by top", () =>
     1000,
   );
   assert.deepEqual(platforms, [
-    { left: 27, right: 107, top: 1100 },
-    { left: 17, right: 117, top: 1300 },
-  ]);
-});
-
-test("blueprints float above their anchor and keep collected flags", () => {
-  const blueprints = toBlueprints(
-    [rect(100, 200, 60), rect(0, 400, 40)],
-    0,
-    50,
-    [true],
-  );
-  assert.deepEqual(blueprints, [
-    { x: 130, y: 250 - BLUEPRINT_LIFT, collected: true },
-    { x: 20, y: 450 - BLUEPRINT_LIFT, collected: false },
+    { id: 2, left: 27, right: 107, top: 1100 },
+    { id: 0, left: 17, right: 117, top: 1300 },
   ]);
 });
 
@@ -107,4 +93,25 @@ test("falling reaches platforms far below", () => {
   const below = { left: 50, right: 300, top: 3000 };
   const blueprints = [{ x: 200, y: below.top - BLUEPRINT_LIFT, collected: false }];
   assert.deepEqual(reachableBlueprints([start, below], start, blueprints), [true]);
+});
+
+test("each platform keeps the index of the element it came from", () => {
+  const platforms = toPlatforms(
+    [rect(0, 300, 100), rect(0, 50, 10), rect(0, 100, 80)],
+    0,
+    0,
+  );
+  assert.deepEqual(
+    platforms.map((p) => p.id),
+    [2, 0],
+  );
+});
+
+test("a high climb allows less sideways distance than a level jump", () => {
+  const start = { left: 0, right: 100, top: 1000 };
+  const level = { left: 220, right: 320, top: 1000 };
+  const high = { left: 220, right: 320, top: 1000 - 100 };
+  const blueprint = (p) => ({ x: p.left + 50, y: p.top - BLUEPRINT_LIFT, collected: false });
+  assert.deepEqual(reachableBlueprints([start, level], start, [blueprint(level)]), [true]);
+  assert.deepEqual(reachableBlueprints([start, high], start, [blueprint(high)]), [false]);
 });

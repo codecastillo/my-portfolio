@@ -1,11 +1,16 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  COYOTE_TIME,
   DUCK_WIDTH,
   FLAP_FALL_SPEED,
   GRAVITY,
+  JUMP_BUFFER,
   JUMP_VELOCITY,
   MAX_FRAME,
+  RUN_ACCEL,
+  RUN_DECEL,
+  RUN_SPEED,
   STEP,
   createDuck,
   stepDuck,
@@ -14,11 +19,18 @@ import {
 
 const idle = { left: false, right: false, jump: false, jumpPressed: false };
 const wide = { left: 0, right: 10000 };
+// Airborne for long enough that the coyote window has closed.
 const airborne = (overrides) => ({
   ...createDuck(100, 50),
   onGround: false,
+  coyote: 1,
   ...overrides,
 });
+const run = (duck, input, platforms, steps) => {
+  let next = duck;
+  for (let i = 0; i < steps; i++) next = stepDuck(next, input, platforms, wide);
+  return next;
+};
 
 test("an airborne duck accelerates downward", () => {
   const next = stepDuck(airborne({ vy: 0 }), idle, [], wide);
@@ -97,4 +109,86 @@ test("leftover time carries into the next frame", () => {
   // 0.6 rather than 0.5 keeps the sum clear of a floating-point boundary.
   const second = stepsFor(STEP * 0.6, first.carry);
   assert.equal(second.steps, 1);
+});
+
+test("running speeds up toward run speed instead of starting at full speed", () => {
+  const right = { ...idle, right: true };
+  const first = stepDuck(createDuck(100, 100), right, [], wide);
+  assert.equal(first.vx, RUN_ACCEL * STEP);
+  const later = run(createDuck(100, 100), right, [], 60);
+  assert.equal(later.vx, RUN_SPEED);
+});
+
+test("letting go slows the duck down instead of stopping dead", () => {
+  const moving = { ...createDuck(100, 100), vx: RUN_SPEED };
+  const next = stepDuck(moving, idle, [], wide);
+  assert.equal(next.vx, RUN_SPEED - RUN_DECEL * STEP);
+});
+
+test("a jump just after running off an edge still works", () => {
+  const press = { ...idle, jump: true, jumpPressed: true };
+  const justLeft = airborne({ coyote: COYOTE_TIME / 2, vy: 50 });
+  const next = stepDuck(justLeft, press, [], wide);
+  assert.ok(next.vy < 0);
+  assert.equal(next.jumped, true);
+});
+
+test("a jump long after leaving the edge does nothing", () => {
+  const press = { ...idle, jump: true, jumpPressed: true };
+  const next = stepDuck(airborne({ coyote: COYOTE_TIME * 2, vy: 50 }), press, [], wide);
+  assert.ok(next.vy > 0);
+  assert.equal(next.jumped, false);
+});
+
+test("a jump pressed just before landing fires on landing", () => {
+  const platform = { left: 50, right: 150, top: 100 };
+  const press = { ...idle, jump: true, jumpPressed: true };
+  const hold = { ...idle, jump: true };
+  let duck = stepDuck(airborne({ y: 96, vy: 100 }), press, [platform], wide);
+  duck = run(duck, hold, [platform], 3);
+  assert.ok(duck.vy < 0, `expected a jump, vy ${duck.vy}`);
+});
+
+test("a jump pressed too early before landing is dropped", () => {
+  const platform = { left: 50, right: 150, top: 100 };
+  const press = { ...idle, jump: true, jumpPressed: true };
+  const late = Math.ceil(JUMP_BUFFER / STEP) + 5;
+  let duck = stepDuck(airborne({ y: 0, vy: 0 }), press, [platform], wide);
+  duck = run(duck, idle, [platform], late + 30);
+  assert.equal(duck.onGround, true);
+  assert.equal(duck.y, 100);
+});
+
+test("tapping jump makes a lower hop than holding it", () => {
+  const press = { ...idle, jump: true, jumpPressed: true };
+  const hold = { ...idle, jump: true };
+  const peak = (input) => {
+    let duck = stepDuck(createDuck(100, 1000), press, [], wide);
+    let highest = duck.y;
+    for (let i = 0; i < 60; i++) {
+      duck = stepDuck(duck, input, [], wide);
+      highest = Math.min(highest, duck.y);
+    }
+    return 1000 - highest;
+  };
+  const tapped = peak(idle);
+  const held = peak(hold);
+  assert.ok(tapped < held * 0.6, `tap ${tapped} vs hold ${held}`);
+});
+
+test("the duck cannot jump again in mid-air", () => {
+  const press = { ...idle, jump: true, jumpPressed: true };
+  let duck = stepDuck(createDuck(100, 1000), press, [], wide);
+  duck = run(duck, { ...idle, jump: true }, [], 20);
+  const again = stepDuck(duck, press, [], wide);
+  assert.equal(again.jumped, false);
+  assert.ok(again.vy > duck.vy);
+});
+
+test("landed is true only on the step that touches down", () => {
+  const platform = { left: 50, right: 150, top: 100 };
+  const touch = stepDuck(airborne({ y: 95, vy: 600 }), idle, [platform], wide);
+  assert.equal(touch.landed, true);
+  const after = stepDuck(touch, idle, [platform], wide);
+  assert.equal(after.landed, false);
 });

@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { EMAIL } from "../content.js";
 import {
-  BLUEPRINT_ANCHORS,
-  readBlueprints,
+  SECTION_SELECTORS,
+  readLedgeArea,
+  readSections,
+  revealAll,
   readPlatforms,
   readStart,
 } from "./dom.js";
+import { generateLedges, placeBlueprints, seededRandom } from "./layout.js";
 import {
   DUCK_HEIGHT,
   DUCK_WIDTH,
@@ -27,18 +30,25 @@ import {
 } from "./world.js";
 
 const HINT_MS = 4000;
-// Falling this far below the page counts as lost, not still falling.
-const RESPAWN_MARGIN = 200;
 const WADDLE_MS = 140;
 const CAMERA_EASE = 0.15;
 const SPARKLE_MS = 400;
 const SPARKLE_SPREAD = 18;
+// Ledges are drawn as faint cyan edges so a player can see where to land.
+const LEDGE_ALPHA = 0.4;
+const LEDGE_THICKNESS = 2;
+// Landing squashes the duck and rising stretches it, by these fractions.
+const SQUASH_MS = 110;
+const SQUASH = 0.2;
+const STRETCH = 0.12;
+const DUST_MS = 320;
+const DUST_SPREAD = 14;
 const BLUEPRINT_DRAW = BLUEPRINT_PIXELS.length * PIXEL;
 // Test hook only: a duck placed this far left of a blueprint already overlaps
 // it horizontally, so a running jump touches it on the way up. From farther
 // out, the jump rises past the blueprint before reaching it.
 const PLACE_OFFSET = 20;
-const TOTAL = BLUEPRINT_ANCHORS.length;
+const TOTAL = SECTION_SELECTORS.length;
 
 const KEY_ACTIONS = {
   ArrowLeft: "left",
@@ -88,12 +98,29 @@ const DuckGame = ({ onExit }) => {
     // Space right after clicking the toggle must jump, not press the button.
     document.activeElement?.blur();
 
+    revealAll();
     const start = readStart();
     let duck = createDuck(start.x, start.y);
-    let platforms = readPlatforms();
-    let blueprints = readBlueprints();
+    let platforms = [];
+    // One seed per game: a relayout rebuilds the same random layout at the
+    // page's new size instead of reshuffling it under the player.
+    const seed = Math.floor(Math.random() * 2 ** 32);
+    let blueprints = [];
+    const build = (collected) => {
+      const ledges = generateLedges(readLedgeArea(), seededRandom(seed));
+      platforms = [...readPlatforms(), ...ledges];
+      blueprints = placeBlueprints(
+        ledges,
+        readSections(),
+        seededRandom(seed + 1),
+        collected,
+      );
+    };
+    build([]);
     let palette = readPalette();
     let sparkles = [];
+    let dust = [];
+    let landedAt = -Infinity;
     let carry = 0;
     let last = null;
     let frame = 0;
@@ -106,8 +133,24 @@ const DuckGame = ({ onExit }) => {
     };
 
     const relayout = () => {
-      platforms = readPlatforms();
-      blueprints = readBlueprints(blueprints.map((b) => b.collected));
+      // A standing duck rides its ledge to wherever the ledge moved.
+      const standingOn =
+        duck.onGround &&
+        platforms.find(
+          (p) =>
+            Math.abs(p.top - duck.y) < 1 &&
+            duck.x + DUCK_WIDTH / 2 > p.left &&
+            duck.x - DUCK_WIDTH / 2 < p.right,
+        );
+      build(blueprints.map((b) => b.collected));
+      const moved = standingOn && platforms.find((p) => p.id === standingOn.id);
+      if (moved) {
+        duck = {
+          ...duck,
+          x: duck.x + (moved.left - standingOn.left),
+          y: moved.top,
+        };
+      }
       palette = readPalette();
       resize();
     };
@@ -117,6 +160,20 @@ const DuckGame = ({ onExit }) => {
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
       ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
       ctx.translate(-window.scrollX, -window.scrollY);
+      const viewTop = window.scrollY - LEDGE_THICKNESS;
+      const viewBottom = window.scrollY + window.innerHeight + LEDGE_THICKNESS;
+      ctx.globalAlpha = LEDGE_ALPHA;
+      ctx.fillStyle = palette.t;
+      for (const platform of platforms) {
+        if (platform.top < viewTop || platform.top > viewBottom) continue;
+        ctx.fillRect(
+          platform.left,
+          platform.top - LEDGE_THICKNESS,
+          platform.right - platform.left,
+          LEDGE_THICKNESS,
+        );
+      }
+      ctx.globalAlpha = 1;
       for (const blueprint of blueprints) {
         if (blueprint.collected) continue;
         drawSprite(
@@ -131,15 +188,44 @@ const DuckGame = ({ onExit }) => {
       }
       const walking = duck.onGround && duck.vx !== 0;
       const pose = walking ? Math.floor(now / WADDLE_MS) % DUCK_FRAMES.length : 0;
+      let scaleX = 1;
+      let scaleY = 1;
+      if (!reducedMotion.matches) {
+        const sinceLanding = now - landedAt;
+        if (sinceLanding < SQUASH_MS) {
+          const amount = SQUASH * (1 - sinceLanding / SQUASH_MS);
+          scaleX = 1 + amount;
+          scaleY = 1 - amount;
+        } else if (!duck.onGround && duck.vy < 0) {
+          scaleX = 1 - STRETCH;
+          scaleY = 1 + STRETCH;
+        }
+      }
+      // Scale around the feet so a squash stays planted on the ledge.
+      ctx.save();
+      ctx.translate(duck.x, duck.y);
+      ctx.scale(scaleX, scaleY);
       drawSprite(
         ctx,
         DUCK_FRAMES[pose],
-        duck.x - DUCK_WIDTH / 2,
-        duck.y - DUCK_HEIGHT,
+        -DUCK_WIDTH / 2,
+        -DUCK_HEIGHT,
         PIXEL,
         palette,
         duck.facing < 0,
       );
+      ctx.restore();
+      dust = dust.filter((puff) => now - puff.start < DUST_MS);
+      ctx.fillStyle = palette.b;
+      for (const puff of dust) {
+        const age = (now - puff.start) / DUST_MS;
+        ctx.globalAlpha = 1 - age;
+        const spread = age * DUST_SPREAD;
+        const lift = PIXEL + age * PIXEL * 2;
+        ctx.fillRect(puff.x - DUCK_WIDTH / 2 - spread, puff.y - lift, PIXEL, PIXEL);
+        ctx.fillRect(puff.x + DUCK_WIDTH / 2 + spread, puff.y - lift, PIXEL, PIXEL);
+      }
+      ctx.globalAlpha = 1;
       sparkles = sparkles.filter((sparkle) => now - sparkle.start < SPARKLE_MS);
       ctx.fillStyle = palette.t;
       for (const sparkle of sparkles) {
@@ -180,12 +266,10 @@ const DuckGame = ({ onExit }) => {
       for (let i = 0; i < timing.steps; i++) {
         duck = stepDuck(duck, input, platforms, bounds);
         input.jumpPressed = false;
-      }
-      // The page only lets the duck travel down, so falling off the bottom
-      // loops back to the start; a missed blueprint can always be retried.
-      if (duck.y > root.scrollHeight + RESPAWN_MARGIN) {
-        const restart = readStart();
-        duck = createDuck(restart.x, restart.y);
+        if (duck.landed && !reducedMotion.matches) {
+          landedAt = now;
+          dust.push({ x: duck.x, y: duck.y, start: now });
+        }
       }
       const result = collectTouched(blueprints, duck);
       if (result.newly > 0) {
@@ -274,12 +358,6 @@ const DuckGame = ({ onExit }) => {
           const blueprint = blueprints[index];
           const anchorTop = blueprint.y + BLUEPRINT_LIFT;
           duck = createDuck(blueprint.x - PLACE_OFFSET, anchorTop);
-        },
-        dropBelowPage: () => {
-          duck = {
-            ...createDuck(duck.x, root.scrollHeight + RESPAWN_MARGIN + 1),
-            onGround: false,
-          };
         },
       };
     }
