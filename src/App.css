@@ -221,11 +221,13 @@ a:focus-visible,
 
 /* The name is fitted to Bricolage Grotesque; a wider fallback font (before
    the web font loads, or when it is blocked) would push the page sideways.
-   Clipping at the padding edge still leaves the L's overhang its gutter. */
+   Clipping at the padding edge still leaves the L's overhang room: it reaches
+   about 0.017em past the word, which grows with the screen (about 0.55vw), so
+   the margin grows too. */
 .wordmark {
   container-type: inline-size;
   overflow-x: clip;
-  padding: var(--space-section) var(--gutter) 0;
+  padding: var(--space-section) max(var(--space-4), 0.6vw) 0;
   color: var(--wordmark);
 }
 

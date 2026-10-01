@@ -9,8 +9,6 @@ import {
 export const BLUEPRINT_SIZE = 20;
 // Blueprints float above their anchor so a standing duck has to hop for one.
 export const BLUEPRINT_LIFT = 40;
-// Slivers narrower than this are too small to land on.
-const MIN_PLATFORM_WIDTH = 24;
 // Reachability is an estimate, not a simulation. MAX_RISE stays under a full
 // jump's peak, JUMP_VELOCITY^2 / (2 * GRAVITY), about 130px. MAX_GAP bounds
 // level jumps and drops, where a running jump covers about 190px or more.
@@ -28,20 +26,6 @@ export const climbReach = (rise) => {
     (speed + Math.sqrt(Math.max(speed ** 2 - 2 * GRAVITY * rise, 0))) / GRAVITY;
   return RUN_SPEED * airtime * CLIMB_SAFETY;
 };
-
-// Each platform keeps the index of the element it came from, so a re-measure
-// after a layout shift can find the ledge the duck was standing on.
-export const toPlatforms = (rects, scrollX, scrollY) =>
-  rects
-    .map((r, id) => ({ r, id }))
-    .filter(({ r }) => r.width >= MIN_PLATFORM_WIDTH && r.height > 0)
-    .map(({ r, id }) => ({
-      id,
-      left: r.left + scrollX,
-      right: r.right + scrollX,
-      top: r.top + scrollY,
-    }))
-    .sort((a, b) => a.top - b.top);
 
 const touches = (blueprint, duck) => {
   const half = BLUEPRINT_SIZE / 2;

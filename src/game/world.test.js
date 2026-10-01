@@ -7,29 +7,7 @@ import {
   cameraTarget,
   collectTouched,
   reachableBlueprints,
-  toPlatforms,
 } from "./world.js";
-
-const rect = (left, top, width, height = 20) => ({
-  left,
-  top,
-  width,
-  height,
-  right: left + width,
-  bottom: top + height,
-});
-
-test("platforms move into page coordinates, drop slivers and sort by top", () => {
-  const platforms = toPlatforms(
-    [rect(10, 300, 100), rect(0, 50, 10), rect(20, 100, 80), rect(5, 5, 50, 0)],
-    7,
-    1000,
-  );
-  assert.deepEqual(platforms, [
-    { id: 2, left: 27, right: 107, top: 1100 },
-    { id: 0, left: 17, right: 117, top: 1300 },
-  ]);
-});
 
 test("touching a blueprint collects it once", () => {
   const blueprints = [
@@ -93,18 +71,6 @@ test("falling reaches platforms far below", () => {
   const below = { left: 50, right: 300, top: 3000 };
   const blueprints = [{ x: 200, y: below.top - BLUEPRINT_LIFT, collected: false }];
   assert.deepEqual(reachableBlueprints([start, below], start, blueprints), [true]);
-});
-
-test("each platform keeps the index of the element it came from", () => {
-  const platforms = toPlatforms(
-    [rect(0, 300, 100), rect(0, 50, 10), rect(0, 100, 80)],
-    0,
-    0,
-  );
-  assert.deepEqual(
-    platforms.map((p) => p.id),
-    [2, 0],
-  );
 });
 
 test("a high climb allows less sideways distance than a level jump", () => {

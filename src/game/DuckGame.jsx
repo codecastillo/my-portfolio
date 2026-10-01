@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { EMAIL } from "../content.js";
 import {
+  FLOOR_ID,
   SECTION_SELECTORS,
+  readBlocked,
+  readFloor,
   readLedgeArea,
   readSections,
   revealAll,
-  readPlatforms,
-  readStart,
 } from "./dom.js";
 import { generateLedges, placeBlueprints, seededRandom } from "./layout.js";
 import {
@@ -34,9 +35,14 @@ const WADDLE_MS = 140;
 const CAMERA_EASE = 0.15;
 const SPARKLE_MS = 400;
 const SPARKLE_SPREAD = 18;
-// Ledges are drawn as faint cyan edges so a player can see where to land.
-const LEDGE_ALPHA = 0.4;
-const LEDGE_THICKNESS = 2;
+// Ledges are drawn as short cyan bars with a dotted underside, so a player
+// can see where to land.
+const LEDGE_ALPHA = 0.85;
+const LEDGE_THICKNESS = 3;
+const LEDGE_DOT_ALPHA = 0.35;
+const LEDGE_DOT_STEP = 6;
+// The duck starts on the first floating ledge, at the top of the page.
+const START_LEDGE_ID = "ledge-0-0";
 // Landing squashes the duck and rising stretches it, by these fractions.
 const SQUASH_MS = 110;
 const SQUASH = 0.2;
@@ -99,16 +105,18 @@ const DuckGame = ({ onExit }) => {
     document.activeElement?.blur();
 
     revealAll();
-    const start = readStart();
-    let duck = createDuck(start.x, start.y);
     let platforms = [];
     // One seed per game: a relayout rebuilds the same random layout at the
     // page's new size instead of reshuffling it under the player.
     const seed = Math.floor(Math.random() * 2 ** 32);
     let blueprints = [];
     const build = (collected) => {
-      const ledges = generateLedges(readLedgeArea(), seededRandom(seed));
-      platforms = [...readPlatforms(), ...ledges];
+      const ledges = generateLedges(
+        readLedgeArea(),
+        seededRandom(seed),
+        readBlocked(),
+      );
+      platforms = [...ledges, readFloor()];
       blueprints = placeBlueprints(
         ledges,
         readSections(),
@@ -117,6 +125,8 @@ const DuckGame = ({ onExit }) => {
       );
     };
     build([]);
+    const startLedge = platforms.find((p) => p.id === START_LEDGE_ID);
+    let duck = createDuck((startLedge.left + startLedge.right) / 2, startLedge.top);
     let palette = readPalette();
     let sparkles = [];
     let dust = [];
@@ -162,16 +172,21 @@ const DuckGame = ({ onExit }) => {
       ctx.translate(-window.scrollX, -window.scrollY);
       const viewTop = window.scrollY - LEDGE_THICKNESS;
       const viewBottom = window.scrollY + window.innerHeight + LEDGE_THICKNESS;
-      ctx.globalAlpha = LEDGE_ALPHA;
       ctx.fillStyle = palette.t;
       for (const platform of platforms) {
+        if (platform.id === FLOOR_ID) continue;
         if (platform.top < viewTop || platform.top > viewBottom) continue;
+        ctx.globalAlpha = LEDGE_ALPHA;
         ctx.fillRect(
           platform.left,
           platform.top - LEDGE_THICKNESS,
           platform.right - platform.left,
           LEDGE_THICKNESS,
         );
+        ctx.globalAlpha = LEDGE_DOT_ALPHA;
+        for (let x = platform.left; x < platform.right; x += LEDGE_DOT_STEP) {
+          ctx.fillRect(x, platform.top + PIXEL, PIXEL, PIXEL);
+        }
       }
       ctx.globalAlpha = 1;
       for (const blueprint of blueprints) {
@@ -346,12 +361,7 @@ const DuckGame = ({ onExit }) => {
       window.__duckGame = {
         state: () => ({ duck, platforms, blueprints }),
         reachable: () => {
-          // Read the start again: a resize moves it away from the first one.
-          const here = readStart();
-          const startPlatform = platforms.find(
-            (p) =>
-              Math.abs(p.top - here.y) < 1 && here.x >= p.left && here.x <= p.right,
-          );
+          const startPlatform = platforms.find((p) => p.id === START_LEDGE_ID);
           return reachableBlueprints(platforms, startPlatform, blueprints);
         },
         placeBeside: (index) => {
