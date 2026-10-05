@@ -73,11 +73,7 @@ export const otherProjects = [
     image: "/work/orbit-social.jpg",
     imageAlt: "The Orbit landing page, headlined The internet, but smaller.",
     links: [
-      { label: "Live demo", href: "https://orbit-social-three.vercel.app" },
-      {
-        label: "Source",
-        href: "https://github.com/codecastillo/orbit-social",
-      },
+      { label: "Source", href: "https://github.com/codecastillo/orbit-social" },
     ],
   },
   {
