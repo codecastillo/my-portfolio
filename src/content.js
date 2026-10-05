@@ -55,21 +55,42 @@ export const permitBuilt = [
 export const otherProjects = [
   {
     name: "Esticount",
-    description: "Material estimates for construction jobs",
-    href: "https://github.com/codecastillo/esticount",
-    linkLabel: "Source",
+    description:
+      "Material estimating and order management for stucco, stone, drywall and painting contractors. Enter a job's square footage and pick the phases, and it works out the materials, compares supplier prices and prints order sheets.",
+    stack: "Node.js, Express, Supabase, JavaScript",
+    image: "/work/esticount.jpg",
+    imageAlt:
+      "The Esticount homepage, headlined Order exactly what you need, with a sample order for a 2,400 sq ft drywall and stucco job.",
+    links: [
+      { label: "Source", href: "https://github.com/codecastillo/esticount" },
+    ],
   },
   {
     name: "Orbit Social",
-    description: "A social platform on Next.js and Supabase",
-    href: "https://github.com/codecastillo/orbit-social",
-    linkLabel: "Source",
+    description:
+      "A full social network with a ranked feed, stories, short video clips, real-time direct messages with video calls, communities, events, a marketplace and live streaming.",
+    stack: "Next.js, TypeScript, Supabase, Mux, Vercel",
+    image: "/work/orbit-social.jpg",
+    imageAlt: "The Orbit landing page, headlined The internet, but smaller.",
+    links: [
+      { label: "Live demo", href: "https://orbit-social-three.vercel.app" },
+      {
+        label: "Source",
+        href: "https://github.com/codecastillo/orbit-social",
+      },
+    ],
   },
   {
     name: "AI Tools",
-    description: "A reference site for AI developer tools",
-    href: "https://github.com/codecastillo/ai-tools",
-    linkLabel: "Source",
+    description:
+      "A reference site that helps students learn the AI tools developers ship with: install guides, usage tips, cheat sheets, side-by-side comparisons and curated stacks. Anyone can submit a tool, and a curator reviews it before it is published.",
+    stack: "Next.js, TypeScript, PostgreSQL, Railway",
+    image: "/work/ai-tools.jpg",
+    imageAlt:
+      "The ai.tools homepage, headlined Compare them, with counts of 33 tools and 10 stacks.",
+    links: [
+      { label: "Source", href: "https://github.com/codecastillo/ai-tools" },
+    ],
   },
 ];
 

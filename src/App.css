@@ -624,81 +624,108 @@ a:focus-visible,
   background: rgba(238, 241, 247, 0.28);
 }
 
-/* Also built */
+/* Also built: three smaller projects as cards under the two products.
+   Smaller screenshots, names and no glow keep them secondary. */
 
 .more {
   padding: var(--space-section) var(--page-inline) 0;
   border-top: 1px solid var(--line);
 }
 
-.more .eyebrow {
-  margin-bottom: 0;
-}
-
-.more li {
-  border-bottom: 1px solid var(--line);
-}
-
-.more-row {
+.more-grid {
   display: grid;
-  gap: var(--space-1) var(--space-6);
-  padding-block: var(--space-5);
-  text-decoration: none;
+  gap: var(--space-7) var(--space-6);
 }
 
-/* Fixed outer columns keep every description on the same left edge. Below
-   64rem the name column is too narrow for one-word names like Esticount,
-   so rows stack instead */
-@media (min-width: 64rem) {
-  .more-row {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 24rem) 7rem;
-    align-items: center;
-  }
+.more-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
 
-  .more-link {
-    justify-self: end;
-  }
+/* The Permit Miner browser frame without its shadow or lift: the
+   screenshot is not a link, so it should not look pressable */
+.more-frame {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #03060d;
+}
+
+.more-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
 .more-name {
+  margin: 0;
   font-family: var(--display);
-  font-size: var(--step-3);
+  font-size: var(--step-2);
   font-weight: 800;
   line-height: 1;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.03em;
   text-transform: uppercase;
-  text-decoration: underline;
-  text-decoration-color: transparent;
-  text-decoration-thickness: 0.06em;
-  text-underline-offset: 0.12em;
-  transition: text-decoration-color 0.15s ease;
 }
 
 .more-description {
+  max-width: 60ch;
   color: var(--muted);
 }
 
+.more-stack {
+  color: var(--muted);
+  font-size: var(--step--1);
+  font-weight: 500;
+}
+
+/* Pushed to the bottom so the links line up across a row of cards whose
+   descriptions differ in length */
+.more-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-5);
+  margin-top: auto;
+  font-weight: 600;
+}
+
+/* The minimum height gives each text link a 44px target */
 .more-link {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-weight: 500;
+  min-height: 2.75rem;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.2em;
 }
 
 .arrow {
   transition: transform 0.15s ease;
 }
 
-.more-row:hover .more-name {
-  text-decoration-color: currentColor;
-}
-
-.more-row:hover .arrow {
+.more-link:hover .arrow {
   transform: translate(2px, -2px);
 }
 
-/* Before software: the Also built row grid without links or arrows, and
-   names in mixed case, so the ventures read as history, not more projects */
+/* Tablets: one card per row with the screenshot beside the text, so a
+   three-card grid never leaves one card alone on its own row */
+@media (min-width: 40.0625rem) and (max-width: 63.99rem) {
+  .more-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+@media (min-width: 64rem) {
+  .more-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Before software: rows without links or arrows, and names in mixed
+   case, so the ventures read as history, not more projects */
 
 .before {
   padding: var(--space-section) var(--page-inline) 0;
@@ -752,7 +779,7 @@ a:focus-visible,
   color: var(--muted);
 }
 
-/* Same columns as Also built, so descriptions share its left edge */
+/* Fixed outer columns keep every description on the same left edge */
 @media (min-width: 64rem) {
   .before-row {
     grid-template-columns: minmax(0, 1fr) minmax(0, 24rem) 7rem;
@@ -861,6 +888,12 @@ a:focus-visible,
   gap: var(--space-4);
   color: var(--muted);
   font-size: var(--step-1);
+}
+
+/* The goal is what a recruiter scans for, so it takes the full text color */
+.about-goal {
+  color: var(--text);
+  font-weight: 500;
 }
 
 .stack {
@@ -1091,7 +1124,6 @@ a:focus-visible,
   .pill,
   .browser,
   .phones img,
-  .more-name,
   .contact-email,
   .arrow,
   .top,

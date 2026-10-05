@@ -1140,6 +1140,9 @@ const Portfolio = () => {
             </h2>
             <DotPortrait ref={portraitRef} className="about-portrait" />
             <div className="about-copy">
+              <p className="about-goal">
+                I'm looking for a full-time software engineering role.
+              </p>
               <p>
                 I'm finishing a Software Development certificate at Dixie
                 Technical College and running two products of my own. Both are
@@ -1265,19 +1268,43 @@ const Portfolio = () => {
           <h2 id="more-title" className="eyebrow">
             Also built
           </h2>
-          <ul>
+          <ul className="more-grid">
             {otherProjects.map((project) => (
-              <li key={project.name}>
-                <ExternalLink href={project.href} className="more-row">
-                  <span className="more-name">{project.name}</span>
-                  <span className="more-description">
-                    {project.description}
+              <li key={project.name} className="more-card">
+                <div className="more-frame">
+                  <span className="browser-bar" aria-hidden="true">
+                    <span />
+                    <span />
+                    <span />
                   </span>
-                  <span className="more-link">
-                    {project.linkLabel}
-                    <Arrow />
-                  </span>
-                </ExternalLink>
+                  <img
+                    src={project.image}
+                    alt={project.imageAlt}
+                    width="1600"
+                    height="950"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="more-body">
+                  <h3 className="more-name">{project.name}</h3>
+                  <p className="more-description">{project.description}</p>
+                  <p className="more-stack">{project.stack}</p>
+                  <p className="more-links">
+                    {project.links.map((link) => (
+                      // Every card has a Source link, so the name tells
+                      // them apart in a screen reader's list of links
+                      <ExternalLink
+                        key={link.href}
+                        href={link.href}
+                        className="more-link"
+                        aria-label={`${link.label} for ${project.name}`}
+                      >
+                        {link.label}
+                        <Arrow />
+                      </ExternalLink>
+                    ))}
+                  </p>
+                </div>
               </li>
             ))}
           </ul>
